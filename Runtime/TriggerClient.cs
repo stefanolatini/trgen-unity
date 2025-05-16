@@ -158,7 +158,7 @@ namespace Trgen
                 ResetTrigger(tr);
             }
         }
-
+        
         public void StartTrigger(int triggerId)
         {
             ResetAll(TriggerPin.AllGpio);
