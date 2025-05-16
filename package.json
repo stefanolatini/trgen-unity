@@ -1,0 +1,23 @@
+{
+  "name": "com.stefanolatini.trgen",
+  "version": "1.0.0",
+  "displayName": "TRGen Trigger Client",
+  "description": "Un client Unity per comunicare con dispositivi TRGen via socket, basato su trgenpy.",
+  "unity": "2021.3",
+  "author": {
+    "name": "Il Tuo Nome",
+    "email": "stefanoelatini@hotmail.it",
+    "url": "https://github.com/stefanolatini"
+  },
+  "keywords": ["trigger", "neuroscan", "trgen", "socket", "unity"],
+  "license": "MIT",
+  "dependencies": {},
+  "documentationUrl": "https://github.com/stefanolatini/trgen-unity/docs",
+  "samples": [
+    {
+      "displayName": "Esempio Base",
+      "description": "Esempio di utilizzo base del client TRGen.",
+      "path": "Samples~/SampleScene"
+    }
+  ]
+}
