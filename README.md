@@ -1,7 +1,22 @@
 # trgen-unity
 A Unity Package used to communicate with TriggerBox
 
-Example
+
+## Getting started
+
+To install this package add this package inside the `Packages/manifest.json` file
+
+```json
+{
+  "dependencies": {
+    ...
+    ...
+    "com.stefanolatini.trgen": "0.0.1",
+  }
+```
+
+## Example
+
 
 ```cs
 using UnityEngine;

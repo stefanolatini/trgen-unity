@@ -2,9 +2,14 @@ using System;
 using System.Net.Sockets;
 using System.Text;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace Trgen
-{
+{   
+    /// <summary>
+    /// TriggerClient is a class that manages 
+    /// connectivity and command set for TrGEN
+    /// </summary>
     public class TriggerClient
     {
         private readonly string ip;
@@ -12,6 +17,8 @@ namespace Trgen
         private readonly int timeout;
         private TrgenImplementation _impl;
         private int _memoryLength = 32;
+        private bool connected = false;
+        public bool Connected => connected;
 
         public TriggerClient(string ip = "192.168.123.1", int port = 4242, int timeout = 2000)
         {
@@ -31,6 +38,7 @@ namespace Trgen
             {
                 int packed = RequestImplementation();
                 _impl = new TrgenImplementation(packed);
+                UnityEngine.Debug.Log(_impl.MemoryLength);
                 _memoryLength = _impl.MemoryLength;
             }
             catch (Exception ex)
@@ -54,38 +62,57 @@ namespace Trgen
 
         public string SendPacket(int packetId, uint[] payload = null)
         {
-            byte[] header = BitConverter.GetBytes(packetId);
+            byte[] header = ToLittleEndian((uint)packetId);
             byte[] payloadBytes = payload != null ? BuildPayload(payload) : Array.Empty<byte>();
-            byte[] raw = new byte[header.Length + payloadBytes.Length];
 
+            byte[] raw = new byte[header.Length + payloadBytes.Length];
             Buffer.BlockCopy(header, 0, raw, 0, header.Length);
             if (payloadBytes.Length > 0)
                 Buffer.BlockCopy(payloadBytes, 0, raw, header.Length, payloadBytes.Length);
 
             uint crc = Crc32.Compute(raw);
-            byte[] crcBytes = BitConverter.GetBytes(crc);
+            byte[] crcBytes = ToLittleEndian(crc);
 
             byte[] packet = new byte[raw.Length + crcBytes.Length];
             Buffer.BlockCopy(raw, 0, packet, 0, raw.Length);
             Buffer.BlockCopy(crcBytes, 0, packet, raw.Length, 4);
-
+            DebugPacket(packet, $"Sending packet 0x{packetId:X8}");
             using (var client = new TcpClient())
             {
-                var result = client.BeginConnect(ip, port, null, null);
-                if (!result.AsyncWaitHandle.WaitOne(timeout))
-                    throw new TimeoutException("Timeout connecting to TRGEN");
+                try
+                {
+                    client.Connect(ip, port); // sincrono
+                    connected = true;
 
-                NetworkStream stream = client.GetStream();
+                    using var stream = client.GetStream();
+                    stream.Write(packet, 0, packet.Length);
 
-                /*
-                * send packet
-                */
-                stream.Write(packet, 0, packet.Length);
-
-                byte[] buffer = new byte[64];
-                int read = stream.Read(buffer, 0, buffer.Length);
-                return Encoding.ASCII.GetString(buffer, 0, read);
+                    byte[] buffer = new byte[64];
+                    int read = stream.Read(buffer, 0, buffer.Length);
+                    return Encoding.ASCII.GetString(buffer, 0, read);
+                }
+                catch
+                {
+                    connected = false;
+                    throw;
+                }
             }
+        }
+
+        private byte[] ToLittleEndian(uint value)
+        {
+            byte[] bytes = BitConverter.GetBytes(value);
+            if (!BitConverter.IsLittleEndian)
+                Array.Reverse(bytes);
+            return bytes;
+        }
+
+        private byte[] BuildPayload(uint[] words)
+        {
+            List<byte> result = new();
+            foreach (var word in words)
+                result.AddRange(ToLittleEndian(word));
+            return result.ToArray();
         }
 
         public int ParseAckValue(string ackStr, int expectedId)
@@ -98,7 +125,14 @@ namespace Trgen
             return int.Parse(parts[1]);
         }
 
-        private byte[] BuildPayload(uint[] words)
+        private void DebugPacket(byte[] packet, string label = "Packet")
+        {
+            var hex = BitConverter.ToString(packet).Replace("-", " ");
+            Console.WriteLine($"{label}: {hex}");
+            UnityEngine.Debug.Log($"{label}: {hex}");
+        }
+
+        /*private byte[] BuildPayload(uint[] words)
         {
             byte[] payload = new byte[words.Length * 4];
             for (int i = 0; i < words.Length; i++)
@@ -107,7 +141,7 @@ namespace Trgen
                 Buffer.BlockCopy(word, 0, payload, i * 4, 4);
             }
             return payload;
-        }
+        }*/
 
         // Commands
         public void Start() => SendPacket(0x02);
@@ -158,7 +192,7 @@ namespace Trgen
                 ResetTrigger(tr);
             }
         }
-        
+
         public void StartTrigger(int triggerId)
         {
             ResetAll(TriggerPin.AllGpio);
