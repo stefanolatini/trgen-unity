@@ -1,5 +1,9 @@
-# trgen-unity
-A Unity Package used to communicate with TriggerBox
+<p align="center">
+  <img src="images/banner.png" alt="TriggerBox Banner" width="600px" height="300px">
+</p>
+<h1 align="center">TriggerBox CLI</h1>
+
+<h3 align="center"> A Unity library that manages Ethernet socket communication with the CoSANLab TriggerBox device </h3>
 
 
 ## Getting started
@@ -11,7 +15,7 @@ To install this package add this package inside the `Packages/manifest.json` fil
   "dependencies": {
     ...
     ...
-    "com.stefanolatini.trgen": "0.0.1",
+    "com.cosanlab.trgen": "1.0.0",
   }
 ```
 

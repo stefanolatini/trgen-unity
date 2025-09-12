@@ -3,10 +3,11 @@ using System.Collections.Generic;
 namespace Trgen
 {
     /// <summary>
-    /// TriggerPin is the class that describe the Pin Mapping Configuration
+    /// Contiene le costanti degli identificatori dei pin di trigger.
     /// </summary>
     public static class TriggerPin
-    {   
+    {
+        // Esempio:
         public const int NS0 = 0;
         public const int NS1 = 1;
         public const int NS2 = 2;
@@ -51,5 +52,10 @@ namespace Trgen
         /// AllNs is a helper that returns all the GPIO pins array
         /// </summary>
         public static readonly List<int> AllGpio = new() { GPIO0, GPIO1, GPIO2, GPIO3, GPIO4, GPIO5, GPIO6, GPIO7 };
+
+        /// <summary>
+        /// AllTMS is a helper that returns all the TMSO pins array
+        /// </summary>
+        public static readonly List<int> AllTMS = new() { TMSO, TMSI };
     }
 }

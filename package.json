@@ -1,8 +1,8 @@
 {
-  "name": "com.stefanolatini.trgen",
-  "version": "0.0.1",
-  "displayName": "TRGen Trigger Client",
-  "description": "Un client Unity per comunicare con dispositivi TRGen via socket, basato su trgenpy.",
+  "name": "com.cosanlab.trgen",
+  "version": "1.0.0",
+  "displayName": "TriggerBox CLI",
+  "description": "A Unity library that manages Ethernet socket communication with the CoSANLab TriggerBox device.",
   "unity": "2021.3",
   "author": {
     "name": "Stefano Latini",
@@ -12,12 +12,21 @@
   "keywords": ["trigger", "neuroscan", "trgen", "socket", "unity"],
   "license": "MIT",
   "dependencies": {},
-  "documentationUrl": "https://github.com/stefanolatini/trgen-unity/docs",
+  "documentationUrl": "https://github.com/CoSANLabRome/TRGen-Unity/blob/main/Documentation/trgen-unity.md",
   "samples": [
     {
       "displayName": "Esempio Base",
       "description": "Esempio di utilizzo base del client TRGen.",
       "path": "Samples~/SampleScene"
     }
-  ]
+  ],
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@github.com:CoSANLabRome/TRGen-Unity.git"
+  },
+  "homepage": "https://research.uniroma1.it/laboratorio/144782",
+  "bugs": {
+    "url": "https://github.com/CoSANLabRome/TRGen-Unity/issues",
+    "email" : "federico.rossano@iit.it"
+  }
 }
