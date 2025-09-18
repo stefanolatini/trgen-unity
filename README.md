@@ -1,7 +1,12 @@
+<h1 align="center">TriggerBox CLI</h1>
+
+![Unity](https://img.shields.io/badge/Unity-2022.3%2B-black?logo=unity)
+[![GitHub release](https://img.shields.io/github/v/release/stefanolatini/trgen-unity?sort=semver)](https://github.com/stefanolatini/trgen-unity/releases)
+
+
 <p align="center">
   <img src="images/banner.png" alt="TriggerBox Banner" width="600px" height="300px">
 </p>
-<h1 align="center">TriggerBox CLI</h1>
 
 <h3 align="center"> A Unity library that manages Ethernet socket communication with the CoSANLab TriggerBox device </h3>
 
