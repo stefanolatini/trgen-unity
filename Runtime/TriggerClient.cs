@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace Trgen
 {   
@@ -103,11 +104,42 @@ namespace Trgen
 
         }
         
+        public async Task ConnectAsync()
+        {
+            _client = new TcpClient();
+
+            // connessione asincrona con timeout
+            using var cts = new CancellationTokenSource(timeout);
+            var connectTask = _client.ConnectAsync(ip, port);
+            var delayTask = Task.Delay(timeout, cts.Token);
+
+            if (await Task.WhenAny(connectTask, delayTask) != connectTask)
+                throw new TimeoutException($"[TRGEN] Timeout connecting to {ip}:{port}");
+
+            await connectTask; // assicura eventuali eccezioni di connessione
+
+            _stream = _client.GetStream();
+
+            connected = true;
+            _running = true;
+
+            // avvia il worker loop asincrono
+            _ = Task.Run(() => WorkerLoopAsync());
+
+            // chiedi la packed implementation
+            int packed = await RequestImplementationAsync();
+            _impl = new TrgenImplementation(packed);
+            _memoryLength = _impl.MemoryLength;
+
+            Log(LogLevel.Debug, $"Connected. Memory length = {_memoryLength}");
+        }
+        
         public void Connect()
         {
             _client = new TcpClient();
             var result = _client.BeginConnect(ip, port, null, null);
-            if (!result.AsyncWaitHandle.WaitOne(timeout)){
+            if (!result.AsyncWaitHandle.WaitOne(timeout))
+            {
                 Log(LogLevel.Info, $"Connected. Memory length = {_memoryLength}");
                 throw new TimeoutException($"[TRGEN] Timeout connecting to {ip}:{port}");
             }
@@ -202,6 +234,41 @@ namespace Trgen
 
             byte[] buffer = new byte[64];
             int read = _stream.Read(buffer, 0, buffer.Length); // qui scatterà IOException se scade il timeout
+            return Encoding.ASCII.GetString(buffer, 0, read);
+        }
+
+        private async Task<string> InternalSendPacketAsync(int packetId, uint[] payload, CancellationToken ct)
+        {
+            byte[] header = ToLittleEndian((uint)packetId);
+            byte[] payloadBytes = payload != null ? BuildPayload(payload) : Array.Empty<byte>();
+
+            byte[] raw = new byte[header.Length + payloadBytes.Length];
+            Buffer.BlockCopy(header, 0, raw, 0, header.Length);
+            if (payloadBytes.Length > 0)
+                Buffer.BlockCopy(payloadBytes, 0, raw, header.Length, payloadBytes.Length);
+
+            uint crc = Crc32.Compute(raw);
+            byte[] crcBytes = ToLittleEndian(crc);
+
+            byte[] packet = new byte[raw.Length + crcBytes.Length];
+            Buffer.BlockCopy(raw, 0, packet, 0, raw.Length);
+            Buffer.BlockCopy(crcBytes, 0, packet, raw.Length, 4);
+
+            DebugPacket(packet, $"Sending packet 0x{packetId:X8}");
+
+            // scrittura async
+            await _stream.WriteAsync(packet, 0, packet.Length, ct);
+
+            // lettura async con timeout
+            byte[] buffer = new byte[64];
+            using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+            cts.CancelAfter(timeout);
+
+            int read = await _stream.ReadAsync(buffer, 0, buffer.Length, cts.Token);
+
+            if (read == 0)
+                throw new IOException("Connection closed by remote host.");
+
             return Encoding.ASCII.GetString(buffer, 0, read);
         }
 
@@ -316,12 +383,43 @@ namespace Trgen
             return ParseAckValue(ack, 0x04);
         }
 
+        public async Task<int> RequestImplementationAsync()
+        {
+            var ack = await EnqueuePacket(0x04);
+            return ParseAckValue(ack, 0x04);
+        }
+
         // -------- Gestione interna --------
         private Task<string> EnqueuePacket(int packetId, uint[] payload = null)
         {
             var item = new WorkItem(packetId, payload);
             _queue.Add(item);
             return item.Tcs.Task;
+        }
+
+        private async Task WorkerLoopAsync()
+        {
+            try
+            {
+                foreach (var item in _queue.GetConsumingEnumerable())
+                {
+                    try
+                    {
+                        using var cts = new CancellationTokenSource(timeout);
+                        string ack = await InternalSendPacketAsync(item.PacketId, item.Payload, cts.Token);
+                        item.Tcs.SetResult(ack);
+                    }
+                    catch (Exception ex)
+                    {
+                        item.Tcs.SetException(ex);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log(LogLevel.Error, $"WorkerLoopAsync crashed: {ex}");
+                connected = false;
+            }
         }
 
         private void WorkerLoop()

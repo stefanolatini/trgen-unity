@@ -43,36 +43,42 @@ To install this package add this package inside the `Packages/manifest.json` fil
 
 
 ```cs
+
+using System;
+using Trgen;
 using UnityEngine;
-using System.Collections.Generic;
 
-namespace Trgen.Demo
+public class TrgenExample : MonoBehaviour
 {
-    public class TriggerBoxExample : MonoBehaviour
+    // TriggerClient instance is to be kept alive as long as you need it
+    TriggerClient client;
+
+    public async void TriggerConnect()
     {
-        private TriggerClient client;
-
-        void Start()
-        {
-            // Default IP "192.168.123.1"
-            // Default Port = 4242
+        if (client != null && client.Connected)
+            throw new InvalidOperationException("Already connected");
+        else {
             client = new TriggerClient();
-
-            // Check availability
-            Debug.Log("TriggerBox available: " + client.IsAvailable());
-
-            // Example: start single Trigger Pin
-            client.StartTrigger(TriggerPin.NS3);
-
-            // Example 2: start multiple Trigger Pins
-            var pins = new List<int> { TriggerPin.GPIO0, TriggerPin.SA2 };
-            client.StartTriggerList(pins);
-
-            // Read state
-            int level = client.GetLevel();
-            Debug.Log("Level: " + level);
+            //client.Connect();
+            client.Verbosity = LogLevel.Debug;
+            await client.ConnectAsync();
         }
     }
+
+    public void TriggerSend()
+    {
+        if (!client.Connected)
+            throw new InvalidOperationException("Connection failed");
+
+        // Connected! (:
+
+        client.StartTrigger(TriggerPin.NS5);
+
+        // opzionalmente reset
+        client.ResetAll(TriggerPin.AllNs);
+    }
+        
 }
+
 
 ```
