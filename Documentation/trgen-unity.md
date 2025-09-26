@@ -126,7 +126,7 @@ public class TriggerBasicExample : MonoBehaviour
 if (client.IsAvailable())
 {
     // Invia un trigger di 20μs sul pin NeuroScan 5
-    client.StartTrigger(TriggerPin.NS5);
+    client.StartTrigger(TrgenPin.NS5);
     Debug.Log("Trigger inviato!");
 }
 ```
@@ -137,9 +137,9 @@ if (client.IsAvailable())
 // Lista di trigger da attivare contemporaneamente
 var triggers = new List<int> 
 { 
-    TriggerPin.NS0, 
-    TriggerPin.NS2, 
-    TriggerPin.GPIO3 
+    TrgenPin.NS0, 
+    TrgenPin.NS2, 
+    TrgenPin.GPIO3 
 };
 
 client.StartTriggerList(triggers);
@@ -211,10 +211,10 @@ client.Verbosity = LogLevel.Debug; // None, Error, Warn, Info, Debug
 
 ```csharp
 // Trigger singolo
-client.StartTrigger(TriggerPin.NS5);
+client.StartTrigger(TrgenPin.NS5);
 
 // Trigger multipli
-client.StartTriggerList(new List<int> { TriggerPin.NS0, TriggerPin.SA2 });
+client.StartTriggerList(new List<int> { TrgenPin.NS0, TrgenPin.SA2 });
 
 // Marker codificati
 client.SendMarker(markerNS: 15, markerGPIO: 7, LSB: false);
@@ -238,7 +238,7 @@ int gpio = client.GetGpio();     // Stato GPIO
 int status = client.GetStatus(); // Stato generale
 ```
 
-### TriggerPin
+### TrgenPin
 
 Classe statica con le costanti per gli identificatori dei pin.
 
@@ -246,32 +246,32 @@ Classe statica con le costanti per gli identificatori dei pin.
 
 ```csharp
 // Pin NeuroScan
-TriggerPin.NS0, TriggerPin.NS1, ..., TriggerPin.NS7
+TrgenPin.NS0, TrgenPin.NS1, ..., TrgenPin.NS7
 
 // Pin Synamps  
-TriggerPin.SA0, TriggerPin.SA1, ..., TriggerPin.SA7
+TrgenPin.SA0, TrgenPin.SA1, ..., TrgenPin.SA7
 
 // Pin GPIO
-TriggerPin.GPIO0, TriggerPin.GPIO1, ..., TriggerPin.GPIO7
+TrgenPin.GPIO0, TrgenPin.GPIO1, ..., TrgenPin.GPIO7
 
 // Pin TMS
-TriggerPin.TMSO, TriggerPin.TMSI
+TrgenPin.TMSO, TrgenPin.TMSI
 ```
 
 #### Gruppi Predefiniti
 
 ```csharp
 // Tutti i pin NeuroScan
-client.ResetAll(TriggerPin.AllNs);
+client.ResetAll(TrgenPin.AllNs);
 
 // Tutti i pin Synamps
-client.ResetAll(TriggerPin.AllSa);
+client.ResetAll(TrgenPin.AllSa);
 
 // Tutti i pin GPIO
-client.ResetAll(TriggerPin.AllGpio);
+client.ResetAll(TrgenPin.AllGpio);
 
 // Tutti i pin TMS
-client.ResetAll(TriggerPin.AllTMS);
+client.ResetAll(TrgenPin.AllTMS);
 ```
 
 ### Programmazione Avanzata
@@ -279,7 +279,7 @@ client.ResetAll(TriggerPin.AllTMS);
 #### Creazione di Sequenze Personalizzate
 
 ```csharp
-var trigger = client.CreateTrgenPort(TriggerPin.NS5);
+var trigger = client.CreateTrgenPort(TrgenPin.NS5);
 
 // Sequenza: attivo 50μs, inattivo 10μs, fine
 trigger.SetInstruction(0, InstructionEncoder.ActiveForUs(50));
@@ -305,7 +305,7 @@ trigger.SetInstruction(3, InstructionEncoder.End());
 
 ```csharp
 // Trigger che attende un evento da un altro trigger
-trigger.SetInstruction(0, InstructionEncoder.WaitPE(TriggerPin.NS0)); // Attendi positive edge su NS0
+trigger.SetInstruction(0, InstructionEncoder.WaitPE(TrgenPin.NS0)); // Attendi positive edge su NS0
 trigger.SetInstruction(1, InstructionEncoder.ActiveForUs(30));
 trigger.SetInstruction(2, InstructionEncoder.End());
 ```
@@ -422,7 +422,7 @@ public class EEGExperiment : MonoBehaviour
         
         if (GUILayout.Button("Send Test Trigger"))
         {
-            client?.StartTrigger(TriggerPin.NS1);
+            client?.StartTrigger(TrgenPin.NS1);
         }
         
         if (GUILayout.Button("Emergency Stop"))
@@ -537,7 +537,7 @@ client.StopTrigger(); // Stop + reset di tutti i trigger
 yield return new WaitForSeconds(0.1f);
 
 // Invia il nuovo trigger
-client.StartTrigger(TriggerPin.NS5);
+client.StartTrigger(TrgenPin.NS5);
 ```
 
 ### Debug e Logging
@@ -588,14 +588,14 @@ catch (SocketException ex)
 // ✅ BUONO: Reset prima di nuove sequenze
 client.StopTrigger();
 await Task.Delay(10); // Breve pausa
-client.StartTrigger(TriggerPin.NS5);
+client.StartTrigger(TrgenPin.NS5);
 
 // ✅ BUONO: Uso di marker per codici numerici
 client.SendMarker(markerNS: trialNumber);
 
 // ❌ EVITARE: Trigger troppo frequenti senza pause
-// client.StartTrigger(TriggerPin.NS1);
-// client.StartTrigger(TriggerPin.NS2); // Troppo veloce!
+// client.StartTrigger(TrgenPin.NS1);
+// client.StartTrigger(TrgenPin.NS2); // Troppo veloce!
 ```
 
 ### Programmazione Avanzata

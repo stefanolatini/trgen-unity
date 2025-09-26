@@ -40,7 +40,7 @@ namespace Trgen
     /// if (impl.GpioNum > 0)
     /// {
     ///     Debug.Log("Dispositivo supporta pin GPIO");
-    ///     client.StartTrigger(TriggerPin.GPIO0);
+    ///     client.StartTrigger(TrgenPin.GPIO0);
     /// }
     /// </code>
     /// </example>

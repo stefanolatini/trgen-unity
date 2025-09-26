@@ -26,23 +26,23 @@ namespace Trgen
     /// <example>
     /// <code>
     /// // Utilizzo di pin singoli
-    /// client.StartTrigger(TriggerPin.NS5);
-    /// client.StartTrigger(TriggerPin.GPIO3);
+    /// client.StartTrigger(TrgenPin.NS5);
+    /// client.StartTrigger(TrgenPin.GPIO3);
     /// 
     /// // Utilizzo di gruppi predefiniti
-    /// client.ResetAll(TriggerPin.AllNs);    // Reset tutti i NeuroScan
-    /// client.ResetAll(TriggerPin.AllGpio);  // Reset tutti i GPIO
+    /// client.ResetAll(TrgenPin.AllNs);    // Reset tutti i NeuroScan
+    /// client.ResetAll(TrgenPin.AllGpio);  // Reset tutti i GPIO
     /// 
     /// // Creazione di gruppi personalizzati
     /// var customPins = new List&lt;int&gt; { 
-    ///     TriggerPin.NS0, 
-    ///     TriggerPin.SA2, 
-    ///     TriggerPin.GPIO7 
+    ///     TrgenPin.NS0, 
+    ///     TrgenPin.SA2, 
+    ///     TrgenPin.GPIO7 
     /// };
     /// client.StartTriggerList(customPins);
     /// </code>
     /// </example>
-    public static class TriggerPin
+    public static class TrgenPin
     {
         // ===== Pin NeuroScan (NS0-NS7) =====
         /// <summary>Pin NeuroScan 0 (ID: 0)</summary>
@@ -111,10 +111,10 @@ namespace Trgen
         /// <example>
         /// <code>
         /// // Reset di tutti i pin NeuroScan
-        /// client.ResetAll(TriggerPin.AllNs);
+        /// client.ResetAll(TrgenPin.AllNs);
         /// 
         /// // Programmazione di tutti i pin NeuroScan
-        /// client.StartTriggerList(TriggerPin.AllNs);
+        /// client.StartTriggerList(TrgenPin.AllNs);
         /// </code>
         /// </example>
         public static readonly List<int> AllNs = new() { NS0, NS1, NS2, NS3, NS4, NS5, NS6, NS7 };
@@ -126,7 +126,7 @@ namespace Trgen
         /// <example>
         /// <code>
         /// // Reset di tutti i pin Synamps
-        /// client.ResetAll(TriggerPin.AllSa);
+        /// client.ResetAll(TrgenPin.AllSa);
         /// </code>
         /// </example>
         public static readonly List<int> AllSa = new() { SA0, SA1, SA2, SA3, SA4, SA5, SA6, SA7 };
@@ -138,10 +138,10 @@ namespace Trgen
         /// <example>
         /// <code>
         /// // Reset di tutti i pin GPIO
-        /// client.ResetAll(TriggerPin.AllGpio);
+        /// client.ResetAll(TrgenPin.AllGpio);
         /// 
         /// // Attivazione simultanea di tutti i GPIO
-        /// client.StartTriggerList(TriggerPin.AllGpio);
+        /// client.StartTriggerList(TrgenPin.AllGpio);
         /// </code>
         /// </example>
         public static readonly List<int> AllGpio = new() { GPIO0, GPIO1, GPIO2, GPIO3, GPIO4, GPIO5, GPIO6, GPIO7 };
@@ -153,7 +153,7 @@ namespace Trgen
         /// <example>
         /// <code>
         /// // Reset di tutti i pin TMS
-        /// client.ResetAll(TriggerPin.AllTMS);
+        /// client.ResetAll(TrgenPin.AllTMS);
         /// </code>
         /// </example>
         public static readonly List<int> AllTMS = new() { TMSO, TMSI };

@@ -105,7 +105,7 @@ namespace Trgen
     /// await client.ConnectAsync();
     /// 
     /// // Invio trigger singolo
-    /// client.StartTrigger(TriggerPin.NS5);
+    /// client.StartTrigger(TrgenPin.NS5);
     /// 
     /// // Invio marker codificato (valore 5 = pin NS0 e NS2)
     /// client.SendMarker(markerNS: 5);
@@ -241,8 +241,8 @@ namespace Trgen
         /// Crea un nuovo oggetto TrgenPort per la programmazione di un trigger specifico.
         /// </summary>
         /// <param name="id">
-        /// Identificatore numerico del trigger. Utilizzare le costanti definite in <see cref="TriggerPin"/>
-        /// per garantire compatibilità (es: <see cref="TriggerPin.NS5"/>, <see cref="TriggerPin.GPIO0"/>).
+        /// Identificatore numerico del trigger. Utilizzare le costanti definite in <see cref="TrgenPin"/>
+        /// per garantire compatibilità (es: <see cref="TrgenPin.NS5"/>, <see cref="TrgenPin.GPIO0"/>).
         /// </param>
         /// <returns>
         /// Nuovo oggetto <see cref="TrgenPort"/> configurato con l'ID specificato e la memoria
@@ -254,7 +254,7 @@ namespace Trgen
         /// </remarks>
         /// <example>
         /// <code>
-        /// var trigger = client.CreateTrgenPort(TriggerPin.NS5);
+        /// var trigger = client.CreateTrgenPort(TrgenPin.NS5);
         /// 
         /// // Programmazione manuale del trigger
         /// trigger.SetInstruction(0, InstructionEncoder.ActiveForUs(20));
@@ -733,7 +733,7 @@ namespace Trgen
         /// <example>
         /// <code>
         /// // Programma un trigger e avvia l'esecuzione
-        /// var trigger = client.CreateTrgenPort(TriggerPin.NS5);
+        /// var trigger = client.CreateTrgenPort(TrgenPin.NS5);
         /// client.ProgramDefaultTrigger(trigger);
         /// client.Start(); // Avvia l'esecuzione
         /// </code>
@@ -857,7 +857,7 @@ namespace Trgen
         /// </remarks>
         /// <example>
         /// <code>
-        /// var trigger = client.CreateTrgenPort(TriggerPin.NS5);
+        /// var trigger = client.CreateTrgenPort(TrgenPin.NS5);
         /// 
         /// // Programma una sequenza: attivo 20μs, inattivo 3μs, fine
         /// trigger.SetInstruction(0, InstructionEncoder.ActiveForUs(20));
@@ -1003,7 +1003,7 @@ namespace Trgen
         /// </remarks>
         /// <example>
         /// <code>
-        /// var trigger = client.CreateTrgenPort(TriggerPin.NS5);
+        /// var trigger = client.CreateTrgenPort(TrgenPin.NS5);
         /// client.ResetTrigger(trigger); // Reset completo del trigger NS5
         /// </code>
         /// </example>
@@ -1037,7 +1037,7 @@ namespace Trgen
         /// </remarks>
         /// <example>
         /// <code>
-        /// var trigger = client.CreateTrgenPort(TriggerPin.NS5);
+        /// var trigger = client.CreateTrgenPort(TrgenPin.NS5);
         /// 
         /// // Trigger standard da 20μs
         /// client.ProgramDefaultTrigger(trigger);
@@ -1063,8 +1063,8 @@ namespace Trgen
         /// </summary>
         /// <param name="ids">
         /// Lista degli identificatori dei trigger da resettare.
-        /// Utilizzare le costanti di <see cref="TriggerPin"/> o le liste predefinite
-        /// come <see cref="TriggerPin.AllNs"/>, <see cref="TriggerPin.AllGpio"/>.
+        /// Utilizzare le costanti di <see cref="TrgenPin"/> o le liste predefinite
+        /// come <see cref="TrgenPin.AllNs"/>, <see cref="TrgenPin.AllGpio"/>.
         /// </param>
         /// <remarks>
         /// Questo metodo è un wrapper che applica <see cref="ResetTrigger"/> a tutti
@@ -1074,16 +1074,16 @@ namespace Trgen
         /// <example>
         /// <code>
         /// // Reset di tutti i pin NeuroScan
-        /// client.ResetAll(TriggerPin.AllNs);
+        /// client.ResetAll(TrgenPin.AllNs);
         /// 
         /// // Reset di pin specifici
-        /// var customPins = new List&lt;int&gt; { TriggerPin.NS0, TriggerPin.GPIO5 };
+        /// var customPins = new List&lt;int&gt; { TrgenPin.NS0, TrgenPin.GPIO5 };
         /// client.ResetAll(customPins);
         /// 
         /// // Reset di tutti i tipi di pin
-        /// client.ResetAll(TriggerPin.AllNs);
-        /// client.ResetAll(TriggerPin.AllSa);
-        /// client.ResetAll(TriggerPin.AllGpio);
+        /// client.ResetAll(TrgenPin.AllNs);
+        /// client.ResetAll(TrgenPin.AllSa);
+        /// client.ResetAll(TrgenPin.AllGpio);
         /// </code>
         /// </example>
         public void ResetAll(List<int> ids)
@@ -1100,7 +1100,7 @@ namespace Trgen
         /// </summary>
         /// <param name="triggerId">
         /// Identificatore del trigger da attivare.
-        /// Utilizzare le costanti di <see cref="TriggerPin"/> per garantire compatibilità.
+        /// Utilizzare le costanti di <see cref="TrgenPin"/> per garantire compatibilità.
         /// </param>
         /// <remarks>
         /// Questo metodo esegue una sequenza completa:
@@ -1114,17 +1114,17 @@ namespace Trgen
         /// <example>
         /// <code>
         /// // Invio di un trigger sul pin NeuroScan 5
-        /// client.StartTrigger(TriggerPin.NS5);
+        /// client.StartTrigger(TrgenPin.NS5);
         /// 
         /// // Invio di un trigger su GPIO 0
-        /// client.StartTrigger(TriggerPin.GPIO0);
+        /// client.StartTrigger(TrgenPin.GPIO0);
         /// </code>
         /// </example>
         public void StartTrigger(int triggerId)
         {
-            ResetAll(TriggerPin.AllGpio);
-            ResetAll(TriggerPin.AllSa);
-            ResetAll(TriggerPin.AllNs);
+            ResetAll(TrgenPin.AllGpio);
+            ResetAll(TrgenPin.AllSa);
+            ResetAll(TrgenPin.AllNs);
 
             var tr = CreateTrgenPort(triggerId);
             ProgramDefaultTrigger(tr);
@@ -1151,26 +1151,26 @@ namespace Trgen
         /// <code>
         /// // Attivazione simultanea di più pin NeuroScan
         /// var triggers = new List&lt;int&gt; { 
-        ///     TriggerPin.NS0, 
-        ///     TriggerPin.NS2, 
-        ///     TriggerPin.NS5 
+        ///     TrgenPin.NS0, 
+        ///     TrgenPin.NS2, 
+        ///     TrgenPin.NS5 
         /// };
         /// client.StartTriggerList(triggers);
         /// 
         /// // Combinazione di diversi tipi di pin
         /// var mixedTriggers = new List&lt;int&gt; { 
-        ///     TriggerPin.NS1, 
-        ///     TriggerPin.GPIO3,
-        ///     TriggerPin.SA7
+        ///     TrgenPin.NS1, 
+        ///     TrgenPin.GPIO3,
+        ///     TrgenPin.SA7
         /// };
         /// client.StartTriggerList(mixedTriggers);
         /// </code>
         /// </example>
         public void StartTriggerList(List<int> triggerIds)
         {
-            ResetAll(TriggerPin.AllGpio);
-            ResetAll(TriggerPin.AllSa);
-            ResetAll(TriggerPin.AllNs);
+            ResetAll(TrgenPin.AllGpio);
+            ResetAll(TrgenPin.AllSa);
+            ResetAll(TrgenPin.AllNs);
 
             foreach (var id in triggerIds)
             {
@@ -1248,48 +1248,48 @@ namespace Trgen
 
             var neuroscanMap = new int[]
             {
-                TriggerPin.NS0,
-                TriggerPin.NS1,
-                TriggerPin.NS2,
-                TriggerPin.NS3,
-                TriggerPin.NS4,
-                TriggerPin.NS5,
-                TriggerPin.NS6,
-                TriggerPin.NS7
+                TrgenPin.NS0,
+                TrgenPin.NS1,
+                TrgenPin.NS2,
+                TrgenPin.NS3,
+                TrgenPin.NS4,
+                TrgenPin.NS5,
+                TrgenPin.NS6,
+                TrgenPin.NS7
                     };
 
                     var synampsMap = new int[]
                     {
-                TriggerPin.SA0,
-                TriggerPin.SA1,
-                TriggerPin.SA2,
-                TriggerPin.SA3,
-                TriggerPin.SA4,
-                TriggerPin.SA5,
-                TriggerPin.SA6,
-                TriggerPin.SA7
+                TrgenPin.SA0,
+                TrgenPin.SA1,
+                TrgenPin.SA2,
+                TrgenPin.SA3,
+                TrgenPin.SA4,
+                TrgenPin.SA5,
+                TrgenPin.SA6,
+                TrgenPin.SA7
                     };
 
                     var gpioMap = new int[]
                     {
-                TriggerPin.GPIO0,
-                TriggerPin.GPIO1,
-                TriggerPin.GPIO2,
-                TriggerPin.GPIO3,
-                TriggerPin.GPIO4,
-                TriggerPin.GPIO5,
-                TriggerPin.GPIO6,
-                TriggerPin.GPIO7
+                TrgenPin.GPIO0,
+                TrgenPin.GPIO1,
+                TrgenPin.GPIO2,
+                TrgenPin.GPIO3,
+                TrgenPin.GPIO4,
+                TrgenPin.GPIO5,
+                TrgenPin.GPIO6,
+                TrgenPin.GPIO7
             };
 
             //ResetAllNS();
             //ResetAllSA();
             //ResetAllGPIO();
             //ResetAllTMSO();
-            ResetAll(TriggerPin.AllGpio);
-            ResetAll(TriggerPin.AllSa);
-            ResetAll(TriggerPin.AllNs);
-            ResetAll(TriggerPin.AllTMS);
+            ResetAll(TrgenPin.AllGpio);
+            ResetAll(TrgenPin.AllSa);
+            ResetAll(TrgenPin.AllNs);
+            ResetAll(TrgenPin.AllTMS);
 
             if (markerNS != null)
             {
@@ -1371,10 +1371,10 @@ namespace Trgen
             //ResetAllSA();
             //ResetAllGPIO();
             //ResetAllNS();
-            ResetAll(TriggerPin.AllGpio);
-            ResetAll(TriggerPin.AllSa);
-            ResetAll(TriggerPin.AllNs);
-            ResetAll(TriggerPin.AllTMS);
+            ResetAll(TrgenPin.AllGpio);
+            ResetAll(TrgenPin.AllSa);
+            ResetAll(TrgenPin.AllNs);
+            ResetAll(TrgenPin.AllTMS);
         }
     }
 }

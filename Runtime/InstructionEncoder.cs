@@ -24,7 +24,7 @@ namespace Trgen
     /// </remarks>
     /// <example>
     /// <code>
-    /// var trigger = client.CreateTrgenPort(TriggerPin.NS5);
+    /// var trigger = client.CreateTrgenPort(TrgenPin.NS5);
     /// 
     /// // Sequenza: attivo 50μs, inattivo 10μs, ripeti 3 volte, fine
     /// trigger.SetInstruction(0, InstructionEncoder.ActiveForUs(50));
@@ -103,7 +103,7 @@ namespace Trgen
         /// <example>
         /// <code>
         /// // Attende che il trigger NS0 vada da LOW a HIGH
-        /// uint instruction = InstructionEncoder.WaitPE(TriggerPin.NS0);
+        /// uint instruction = InstructionEncoder.WaitPE(TrgenPin.NS0);
         /// trigger.SetInstruction(2, instruction);
         /// </code>
         /// </example>
@@ -122,7 +122,7 @@ namespace Trgen
         /// <example>
         /// <code>
         /// // Attende che il trigger GPIO3 vada da HIGH a LOW
-        /// uint instruction = InstructionEncoder.WaitNE(TriggerPin.GPIO3);
+        /// uint instruction = InstructionEncoder.WaitNE(TrgenPin.GPIO3);
         /// trigger.SetInstruction(3, instruction);
         /// </code>
         /// </example>

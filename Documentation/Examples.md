@@ -220,7 +220,7 @@ public class TriggerManager : MonoBehaviour
             
             if (GUILayout.Button("Test Trigger NS5"))
             {
-                SendTrigger(TriggerPin.NS5);
+                SendTrigger(TrgenPin.NS5);
             }
             
             if (GUILayout.Button("Test Marker (5)"))
@@ -616,8 +616,8 @@ public class TMSController : MonoBehaviour
     public bool enableSafetyLimits = true;
     
     [Header("Trigger Pins")]
-    public int tmsTriggerPin = TriggerPin.TMSO;
-    public int intensityPin = TriggerPin.GPIO0;
+    public int tmsTrgenPin = TrgenPin.TMSO;
+    public int intensityPin = TrgenPin.GPIO0;
     
     private TriggerManager triggerManager;
     private bool stimulating = false;
@@ -674,7 +674,7 @@ public class TMSController : MonoBehaviour
         for (int i = 0; i < numberOfPulses && stimulating; i++)
         {
             // Invia impulso TMS
-            triggerManager.SendTrigger(tmsTriggerPin);
+            triggerManager.SendTrigger(tmsTrgenPin);
             pulsesDelivered++;
             
             Debug.Log($"TMS Pulse {i + 1}/{numberOfPulses} delivered");
@@ -805,7 +805,7 @@ public class TriggerReceiver : MonoBehaviour, INotificationReceiver
                     triggerManager.SendMarker(markerGPIO: marker.triggerCode);
                     break;
                 case TriggerType.TMS:
-                    triggerManager.SendTrigger(TriggerPin.TMSO);
+                    triggerManager.SendTrigger(TrgenPin.TMSO);
                     break;
             }
             
@@ -995,7 +995,7 @@ public class TriggerTestSuite : MonoBehaviour
         try
         {
             // Test tutti i tipi di pin
-            int[] testPins = { TriggerPin.NS0, TriggerPin.SA0, TriggerPin.GPIO0 };
+            int[] testPins = { TrgenPin.NS0, TrgenPin.SA0, TrgenPin.GPIO0 };
             
             foreach (int pin in testPins)
             {
@@ -1061,7 +1061,7 @@ public class TriggerTestSuite : MonoBehaviour
         try
         {
             // Test trigger simultanei
-            var triggerList = new List<int> { TriggerPin.NS1, TriggerPin.NS3, TriggerPin.GPIO5 };
+            var triggerList = new List<int> { TrgenPin.NS1, TrgenPin.NS3, TrgenPin.GPIO5 };
             triggerManager.TriggerManager.Instance.client.StartTriggerList(triggerList);
             
             yield return new WaitForSeconds(0.5f);
@@ -1091,7 +1091,7 @@ public class TriggerTestSuite : MonoBehaviour
         {
             // Test programmazione personalizzata
             var client = TriggerManager.Instance.client;
-            var trigger = client.CreateTrgenPort(TriggerPin.NS7);
+            var trigger = client.CreateTrgenPort(TrgenPin.NS7);
             
             // Sequenza: 30μs on, 10μs off, repeat 3 times
             trigger.SetInstruction(0, InstructionEncoder.ActiveForUs(30));
@@ -1386,7 +1386,7 @@ public class MultiModalSync : MonoBehaviour
         if (triggerManager?.IsConnected == true)
         {
             // Master clock trigger (alta frequenza)
-            triggerManager.SendTrigger(TriggerPin.NS0);
+            triggerManager.SendTrigger(TrgenPin.NS0);
             masterClockCounter++;
             
             // Ogni secondo invia anche marker timestamp

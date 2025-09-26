@@ -201,7 +201,7 @@ public class BasicTriggerExample : MonoBehaviour        client = new TrgenClient
 
     }// Trigger singolo su pin NeuroScan 5 (impulso 20μs)
 
-}client.StartTrigger(TriggerPin.NS5);
+}client.StartTrigger(TrgenPin.NS5);
 
 ``````
 
@@ -215,7 +215,7 @@ public class BasicTriggerExample : MonoBehaviour        client = new TrgenClient
 
 // Single trigger on NeuroScan pin 5 (20μs pulse)// Invia valore 5 sui pin NeuroScan (attiva NS0 e NS2)
 
-client.StartTrigger(TriggerPin.NS5);client.SendMarker(markerNS: 5);
+client.StartTrigger(TrgenPin.NS5);client.SendMarker(markerNS: 5);
 
 ```
 
@@ -243,7 +243,7 @@ client.SendMarker(### Esempio Avanzato: Sequenza Personalizzata
 
     LSB: true        // LSB first// Crea trigger personalizzato
 
-);var trigger = client.CreateTrgenPort(TriggerPin.NS5);
+);var trigger = client.CreateTrgenPort(TrgenPin.NS5);
 
 ```
 
@@ -257,7 +257,7 @@ trigger.SetInstruction(1, InstructionEncoder.UnactiveForUs(10));
 
 // Create custom trigger
 
-var trigger = client.CreateTrgenPort(TriggerPin.NS5);// Invia al dispositivo ed esegui
+var trigger = client.CreateTrgenPort(TrgenPin.NS5);// Invia al dispositivo ed esegui
 
 client.SendTrgenMemory(trigger);
 
@@ -331,7 +331,7 @@ client.SendMarker(markerNS: trialNumber);
 
 // Presenta stimolo e invia trigger
 
-### EEG Experimentclient.StartTrigger(TriggerPin.NS1);
+### EEG Experimentclient.StartTrigger(TrgenPin.NS1);
 
 ShowStimulus();
 
@@ -345,7 +345,7 @@ client.SendMarker(markerNS: trialNumber);client.SendMarker(markerNS: responseCod
 
 // Present stimulus and send trigger
 
-client.StartTrigger(TriggerPin.NS1);### Controllo Stimolatore TMS
+client.StartTrigger(TrgenPin.NS1);### Controllo Stimolatore TMS
 
 ShowStimulus();
 
@@ -353,13 +353,13 @@ ShowStimulus();
 
 // User response marker  // Attiva stimolatore tramite GPIO
 
-client.SendMarker(markerNS: responseCode);client.StartTrigger(TriggerPin.GPIO0);
+client.SendMarker(markerNS: responseCode);client.StartTrigger(TrgenPin.GPIO0);
 
 ```
 
 // Trigger di sincronizzazione su TMS
 
-### TMS Stimulator Controlclient.StartTrigger(TriggerPin.TMSO);
+### TMS Stimulator Controlclient.StartTrigger(TrgenPin.TMSO);
 
 ```
 
@@ -367,19 +367,19 @@ client.SendMarker(markerNS: responseCode);client.StartTrigger(TriggerPin.GPIO0);
 
 // Activate stimulator via GPIO### Sincronizzazione Multi-dispositivo
 
-client.StartTrigger(TriggerPin.GPIO0);
+client.StartTrigger(TrgenPin.GPIO0);
 
 ```csharp
 
 // Synchronization trigger on TMS// Trigger simultaneo su più sistemi
 
-client.StartTrigger(TriggerPin.TMSO);client.StartTriggerList(new List<int> {
+client.StartTrigger(TrgenPin.TMSO);client.StartTriggerList(new List<int> {
 
-```    TriggerPin.NS0,    // EEG
+```    TrgenPin.NS0,    // EEG
 
-    TriggerPin.GPIO3,  // Eye-tracker  
+    TrgenPin.GPIO3,  // Eye-tracker  
 
-### Multi-device Synchronization    TriggerPin.SA5     // fMRI
+### Multi-device Synchronization    TrgenPin.SA5     // fMRI
 
 });
 
@@ -389,11 +389,11 @@ client.StartTrigger(TriggerPin.TMSO);client.StartTriggerList(new List<int> {
 
 client.StartTriggerList(new List<int> {## 🔧 Requisiti Sistema
 
-    TriggerPin.NS0,    // EEG
+    TrgenPin.NS0,    // EEG
 
-    TriggerPin.GPIO3,  // Eye-tracker  - **Unity:** 2021.3 o superiore
+    TrgenPin.GPIO3,  // Eye-tracker  - **Unity:** 2021.3 o superiore
 
-    TriggerPin.SA5     // fMRI- **Framework:** .NET Standard 2.1
+    TrgenPin.SA5     // fMRI- **Framework:** .NET Standard 2.1
 
 });- **Piattaforme:** Windows, macOS, Linux
 

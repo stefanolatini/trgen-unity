@@ -107,7 +107,7 @@ public class BasicTriggerExample : MonoBehaviour
 
 ```csharp
 // Trigger singolo su pin NeuroScan 5 (impulso 20μs)
-client.StartTrigger(TriggerPin.NS5);
+client.StartTrigger(TrgenPin.NS5);
 ```
 
 ### Invio Marker Codificati
@@ -128,7 +128,7 @@ client.SendMarker(
 
 ```csharp
 // Crea trigger personalizzato
-var trigger = client.CreateTrgenPort(TriggerPin.NS5);
+var trigger = client.CreateTrgenPort(TrgenPin.NS5);
 
 // Programma sequenza: attivo 50μs, inattivo 10μs, fine
 trigger.SetInstruction(0, InstructionEncoder.ActiveForUs(50));
@@ -172,7 +172,7 @@ Per documentazione dettagliata, esempi avanzati e API reference:
 client.SendMarker(markerNS: trialNumber);
 
 // Presenta stimolo e invia trigger
-client.StartTrigger(TriggerPin.NS1);
+client.StartTrigger(TrgenPin.NS1);
 ShowStimulus();
 
 // Marker di risposta utente  
@@ -183,10 +183,10 @@ client.SendMarker(markerNS: responseCode);
 
 ```csharp
 // Attiva stimolatore tramite GPIO
-client.StartTrigger(TriggerPin.GPIO0);
+client.StartTrigger(TrgenPin.GPIO0);
 
 // Trigger di sincronizzazione su TMS
-client.StartTrigger(TriggerPin.TMSO);
+client.StartTrigger(TrgenPin.TMSO);
 ```
 
 ### Sincronizzazione Multi-dispositivo
@@ -194,9 +194,9 @@ client.StartTrigger(TriggerPin.TMSO);
 ```csharp
 // Trigger simultaneo su più sistemi
 client.StartTriggerList(new List<int> {
-    TriggerPin.NS0,    // EEG
-    TriggerPin.GPIO3,  // Eye-tracker  
-    TriggerPin.SA5     // fMRI
+    TrgenPin.NS0,    // EEG
+    TrgenPin.GPIO3,  // Eye-tracker  
+    TrgenPin.SA5     // fMRI
 });
 ```
 
