@@ -6,21 +6,21 @@ using System;
 
 namespace Trgen.Tests
 {
-    public class TriggerClientTests
+    public class TrgenClientTests
     {
-        private TriggerClient client;
+        private TrgenClient client;
 
         [SetUp]
         public void Setup()
         {
             // Use a dummy IP and port to avoid real network calls in unit tests.
-            client = new TriggerClient("127.0.0.1", 9999, 100);
+            client = new TrgenClient("127.0.0.1", 9999, 100);
         }
 
         [Test]
-        public void CreateTrigger_ReturnsTriggerWithCorrectId()
+        public void CreateTrgenPort_ReturnsTriggerWithCorrectId()
         {
-            var trigger = client.CreateTrigger(5);
+            var trigger = client.CreateTrgenPort(5);
             Assert.AreEqual(5, trigger.Id);
         }
 
@@ -47,7 +47,7 @@ namespace Trgen.Tests
         [Test]
         public void ToLittleEndian_ReturnsCorrectBytes()
         {
-            var method = typeof(TriggerClient).GetMethod("ToLittleEndian", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var method = typeof(TrgenClient).GetMethod("ToLittleEndian", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             byte[] bytes = (byte[])method.Invoke(client, new object[] { (uint)0x12345678 });
             if (BitConverter.IsLittleEndian)
                 Assert.AreEqual(new byte[] { 0x78, 0x56, 0x34, 0x12 }, bytes);
@@ -58,7 +58,7 @@ namespace Trgen.Tests
         [Test]
         public void BuildPayload_ReturnsCorrectLength()
         {
-            var method = typeof(TriggerClient).GetMethod("BuildPayload", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var method = typeof(TrgenClient).GetMethod("BuildPayload", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             byte[] payload = (byte[])method.Invoke(client, new object[] { new uint[] { 1, 2, 3 } });
             Assert.AreEqual(12, payload.Length);
         }
@@ -74,7 +74,7 @@ namespace Trgen.Tests
         [UnityTest]
         public IEnumerator ProgramDefaultTrigger_DoesNotThrow()
         {
-            var trigger = client.CreateTrigger(1);
+            var trigger = client.CreateTrgenPort(1);
             Assert.DoesNotThrow(() => client.ProgramDefaultTrigger(trigger, 10));
             yield return null;
         }

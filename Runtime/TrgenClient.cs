@@ -39,7 +39,7 @@ namespace Trgen
     /// Gestisce la connessione, la comunicazione e il controllo dei trigger hardware tramite il protocollo TrGEN.
     /// Permette di programmare, resettare e inviare segnali di trigger su diversi tipi di porte (NeuroScan, Synamaps, GPIO).
     /// </summary>
-    public class TriggerClient
+    public class TrgenClient
     {
         private readonly string ip;
         private readonly int port;
@@ -59,12 +59,12 @@ namespace Trgen
 
         
         /// <summary>
-        /// Crea una nuova istanza di TriggerClient.
+        /// Crea una nuova istanza di TrgenClient.
         /// </summary>
         /// <param name="ip">Indirizzo IP del dispositivo TrGEN.</param>
         /// <param name="port">Porta di comunicazione.</param>
         /// <param name="timeout">Timeout per la connessione in millisecondi.</param>
-        public TriggerClient(string ip = "192.168.123.1", int port = 4242, int timeout = 2000)
+        public TrgenClient(string ip = "192.168.123.1", int port = 4242, int timeout = 2000)
         {
             this.ip = ip;
             this.port = port;
@@ -72,13 +72,13 @@ namespace Trgen
         }
 
         /// <summary>
-        /// Crea un oggetto Trigger associato a un identificatore specifico.
+        /// Crea un oggetto TrgenPort associato a un identificatore specifico.
         /// </summary>
         /// <param name="id">Identificatore del trigger.</param>
-        /// <returns>Oggetto Trigger.</returns>
-        public Trigger CreateTrigger(int id)
+        /// <returns>Oggetto TrgenPort.</returns>
+        public TrgenPort CreateTrgenPort(int id)
         {
-            return new Trigger(id, _memoryLength);
+            return new TrgenPort(id, _memoryLength);
         }
 
         private void Log(LogLevel level, string message)
@@ -370,7 +370,7 @@ namespace Trgen
         public int GetLevel() => ParseAckValue(EnqueuePacket(0x08).Result, 0x08);
         public int GetStatus() => ParseAckValue(EnqueuePacket(0x05).Result, 0x05);
         public int GetGpio() => ParseAckValue(EnqueuePacket(0x07).Result, 0x07);
-        public void SendTriggerMemory(Trigger t)
+        public void SendTrgenMemory(TrgenPort t)
         {
             int id = t.Id;
             int packetId = 0x01 | (id << 24);
@@ -452,22 +452,22 @@ namespace Trgen
             }
         }
 
-        public void ResetTrigger(Trigger t)
+        public void ResetTrigger(TrgenPort t)
         {
             t.SetInstruction(0, InstructionEncoder.End());
             for (int i = 1; i < _memoryLength -1; i++)
                 t.SetInstruction(i, InstructionEncoder.NotAdmissible());
-            SendTriggerMemory(t);
+            SendTrgenMemory(t);
         }
 
-        public void ProgramDefaultTrigger(Trigger t, uint us = 20)
+        public void ProgramDefaultTrigger(TrgenPort t, uint us = 20)
         {
             t.SetInstruction(0, InstructionEncoder.ActiveForUs(us));
             t.SetInstruction(1, InstructionEncoder.UnactiveForUs(3));
             t.SetInstruction(2, InstructionEncoder.End());
             for (int i = 3; i < _memoryLength - 1; i++)
                 t.SetInstruction(i, InstructionEncoder.NotAdmissible());
-            SendTriggerMemory(t);
+            SendTrgenMemory(t);
         }
 
         // Implement ResetAll per tipo pin
@@ -475,7 +475,7 @@ namespace Trgen
         {
             foreach (var id in ids)
             {
-                var tr = CreateTrigger(id);
+                var tr = CreateTrgenPort(id);
                 ResetTrigger(tr);
             }
         }
@@ -486,7 +486,7 @@ namespace Trgen
             ResetAll(TriggerPin.AllSa);
             ResetAll(TriggerPin.AllNs);
 
-            var tr = CreateTrigger(triggerId);
+            var tr = CreateTrgenPort(triggerId);
             ProgramDefaultTrigger(tr);
             Start();
         }
@@ -499,7 +499,7 @@ namespace Trgen
 
             foreach (var id in triggerIds)
             {
-                var tr = CreateTrigger(id);
+                var tr = CreateTrgenPort(id);
                 ProgramDefaultTrigger(tr);
             }
             Start();
@@ -571,7 +571,7 @@ namespace Trgen
                 {
                     if (maskNS[idx] == '1')
                     {
-                        var nsx = CreateTrigger(neuroscanMap[idx]);
+                        var nsx = CreateTrgenPort(neuroscanMap[idx]);
                         ProgramDefaultTrigger(nsx);
                     }
                 }
@@ -585,7 +585,7 @@ namespace Trgen
                 {
                     if (maskSA[idx] == '1')
                     {
-                        var sax = CreateTrigger(synampsMap[idx]);
+                        var sax = CreateTrgenPort(synampsMap[idx]);
                         ProgramDefaultTrigger(sax);
                     }
                 }
@@ -599,7 +599,7 @@ namespace Trgen
                 {
                     if (maskGPIO[idx] == '1')
                     {
-                        var gpx = CreateTrigger(gpioMap[idx]);
+                        var gpx = CreateTrgenPort(gpioMap[idx]);
                         ProgramDefaultTrigger(gpx);
                     }
                 }

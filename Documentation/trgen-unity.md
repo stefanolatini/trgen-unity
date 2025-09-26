@@ -26,21 +26,21 @@ namespace Trgen.Demo
 {
     public class TriggerBoxExample : MonoBehaviour
     {
-        private TriggerClient client;
+        private TrgenClient client;
 
         void Start()
         {
             // Default IP "192.168.123.1"
             // Default Port = 4242
-            client = new TriggerClient();
+            client = new TrgenClient();
 
             // Check availability
             Debug.Log("TriggerBox available: " + client.IsAvailable());
 
-            // Example: start single Trigger Pin
+            // Example: start single TrgenPort Pin
             client.StartTrigger(TriggerPin.NS3);
 
-            // Example 2: start multiple Trigger Pins
+            // Example 2: start multiple TrgenPort Pins
             var pins = new List<int> { TriggerPin.GPIO0, TriggerPin.SA2 };
             client.StartTriggerList(pins);
 

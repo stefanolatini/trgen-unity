@@ -5,7 +5,7 @@ namespace Trgen
     /// <summary>
     /// Rappresenta un trigger programmabile, con memoria interna per le istruzioni.
     /// </summary>
-    public class Trigger
+    public class TrgenPort
     {
         /// <summary>
         /// Identificatore del trigger.
@@ -28,7 +28,7 @@ namespace Trgen
         /// </summary>
         /// <param name="id">Identificatore del trigger.</param>
         /// <param name="memoryLength">Numero di istruzioni programmabili.</param>
-        public Trigger(int id, int memoryLength)
+        public TrgenPort(int id, int memoryLength)
         {
             Id = id;
             Memory = new uint[memoryLength];
