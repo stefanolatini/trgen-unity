@@ -30,17 +30,18 @@
 
 <div align="center">---
 
+[![🇺🇸 English](https://img.shields.io/badge/🇺🇸-English-blue?style=for-the-badge)](README.md) [![🇮🇹 Italiano](https://img.shields.io/badge/🇮🇹-Italiano-green?style=for-the-badge)](README_ITA.md)
 
+</div>
 
 **🌐 Language / Lingua**## ✨ Caratteristiche
 
 
-
-[![🇺🇸 English](https://img.shields.io/badge/🇺🇸-English-blue?style=for-the-badge)](README.md) [![🇮🇹 Italiano](https://img.shields.io/badge/🇮🇹-Italiano-green?style=for-the-badge)](README_ITA.md)- 🔌 **Supporto completo per tutti i tipi di pin**: NeuroScan, Synamps, GPIO, TMS
+- 🔌 **Supporto completo per tutti i tipi di pin**: NeuroScan, Synamps, GPIO, TMS
 
 - ⚡ **Operazioni sincrone e asincrone** per massima flessibilità  
 
-</div>- 🎯 **Trigger di precisione** con controllo temporale in microsecondi
+- 🎯 **Trigger di precisione** con controllo temporale in microsecondi
 
 - 📡 **Connessione TCP/IP persistente** con gestione automatica degli errori
 
