@@ -1,232 +1,471 @@
-<h1 align="center">TRGen Unity Package</h1>
+<h1 align="center">TRGen Unity Package</h1><h1 align="center">TRGen Unity Package</h1>
 
-<p align="center">
-  <img src="images/banner.png" alt="TriggerBox Banner" width="600px" height="300px">
-</p>
 
-<h3 align="center">Una libreria Unity per la comunicazione Ethernet con il dispositivo CoSANLab TriggerBox</h3>
 
-<p align="center">
-  <a href="https://unity.com"><img src="https://img.shields.io/badge/Unity-2021.3%2B-black?logo=unity" alt="Unity Version"></a>
-  <a href="https://github.com/stefanolatini/trgen-unity/releases"><img src="https://img.shields.io/github/v/release/stefanolatini/trgen-unity?sort=semver" alt="GitHub Release"></a>
-  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
-  <a href="https://openupm.com/packages/com.cosanlab.trgen/"><img src="https://img.shields.io/npm/v/com.cosanlab.trgen?label=openupm&registry_uri=https://package.openupm.com" alt="OpenUPM"></a>
-</p>
+<p align="center"><p align="center">
 
----
+  <img src="images/banner.png" alt="TriggerBox Banner" width="600px" height="300px">  <img src="images/banner.png" alt="TriggerBox Banner" width="600px" height="300px">
 
-## ✨ Caratteristiche
+</p></p>
 
-- 🔌 **Supporto completo per tutti i tipi di pin**: NeuroScan, Synamps, GPIO, TMS
+
+
+<h3 align="center">A Unity library for Ethernet communication with CoSANLab TriggerBox device</h3><h3 align="center">Una libreria Unity per la comunicazione Ethernet con il dispositivo CoSANLab TriggerBox</h3>
+
+
+
+<p align="center"><p align="center">
+
+  <a href="https://unity.com"><img src="https://img.shields.io/badge/Unity-2021.3%2B-black?logo=unity" alt="Unity Version"></a>  <a href="https://unity.com"><img src="https://img.shields.io/badge/Unity-2021.3%2B-black?logo=unity" alt="Unity Version"></a>
+
+  <a href="https://github.com/stefanolatini/trgen-unity/releases"><img src="https://img.shields.io/github/v/release/stefanolatini/trgen-unity?sort=semver" alt="GitHub Release"></a>  <a href="https://github.com/stefanolatini/trgen-unity/releases"><img src="https://img.shields.io/github/v/release/stefanolatini/trgen-unity?sort=semver" alt="GitHub Release"></a>
+
+  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>  <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License: MIT"></a>
+
+  <a href="https://openupm.com/packages/com.cosanlab.trgen/"><img src="https://img.shields.io/npm/v/com.cosanlab.trgen?label=openupm&registry_uri=https://package.openupm.com" alt="OpenUPM"></a>  <a href="https://openupm.com/packages/com.cosanlab.trgen/"><img src="https://img.shields.io/npm/v/com.cosanlab.trgen?label=openupm&registry_uri=https://package.openupm.com" alt="OpenUPM"></a>
+
+</p></p>
+
+
+
+<div align="center">---
+
+
+
+**🌐 Language / Lingua**## ✨ Caratteristiche
+
+
+
+[![🇺🇸 English](https://img.shields.io/badge/🇺🇸-English-blue?style=for-the-badge)](README.md) [![🇮🇹 Italiano](https://img.shields.io/badge/🇮🇹-Italiano-green?style=for-the-badge)](README_ITA.md)- 🔌 **Supporto completo per tutti i tipi di pin**: NeuroScan, Synamps, GPIO, TMS
+
 - ⚡ **Operazioni sincrone e asincrone** per massima flessibilità  
-- 🎯 **Trigger di precisione** con controllo temporale in microsecondi
+
+</div>- 🎯 **Trigger di precisione** con controllo temporale in microsecondi
+
 - 📡 **Connessione TCP/IP persistente** con gestione automatica degli errori
-- 🔄 **Thread-safe** per applicazioni multi-thread
+
+---- 🔄 **Thread-safe** per applicazioni multi-thread
+
 - 📝 **Sistema di logging configurabile** per debug e diagnostica
-- 🧩 **Programmazione avanzata** con sequenze, loop e sincronizzazione
 
-## 📦 Installazione
+## ✨ Features- 🧩 **Programmazione avanzata** con sequenze, loop e sincronizzazione
 
-### Metodo 1: OpenUPM (Consigliato)
 
-```bash
-openupm add com.cosanlab.trgen
-```
 
-### Metodo 2: Package Manager Unity
+- 🔌 **Complete support for all pin types**: NeuroScan, Synamps, GPIO, TMS## 📦 Installazione
 
-1. Apri **Window > Package Manager**
+- ⚡ **Synchronous and asynchronous operations** for maximum flexibility  
+
+- 🎯 **Precision triggers** with microsecond timing control### Metodo 1: OpenUPM (Consigliato)
+
+- 📡 **Persistent TCP/IP connection** with automatic error handling
+
+- 🔄 **Thread-safe** for multi-threaded applications```bash
+
+- 📝 **Configurable logging system** for debugging and diagnosticsopenupm add com.cosanlab.trgen
+
+- 🧩 **Advanced programming** with sequences, loops and synchronization```
+
+
+
+## 📦 Installation### Metodo 2: Package Manager Unity
+
+
+
+### Method 1: OpenUPM (Recommended)1. Apri **Window > Package Manager**
+
 2. Clicca **"+"** → **"Add package from git URL..."**  
-3. Inserisci: `https://github.com/stefanolatini/trgen-unity.git`
 
-### Metodo 3: Manifest Manuale
+```bash3. Inserisci: `https://github.com/stefanolatini/trgen-unity.git`
 
-Aggiungi al tuo `Packages/manifest.json`:
+openupm add com.cosanlab.trgen
 
-```json
-{
-  "dependencies": {
+```### Metodo 3: Manifest Manuale
+
+
+
+### Method 2: Unity Package ManagerAggiungi al tuo `Packages/manifest.json`:
+
+
+
+1. Open **Window > Package Manager**```json
+
+2. Click **"+"** → **"Add package from git URL..."**  {
+
+3. Enter: `https://github.com/stefanolatini/trgen-unity.git`  "dependencies": {
+
     "com.cosanlab.trgen": "1.0.0"
-  },
+
+### Method 3: Manual Manifest  },
+
   "scopedRegistries": [
-    {
+
+Add to your `Packages/manifest.json`:    {
+
       "name": "OpenUPM", 
+
+```json      "url": "https://package.openupm.com",
+
+{      "scopes": ["com.cosanlab.trgen"]
+
+  "dependencies": {    }
+
+    "com.cosanlab.trgen": "1.0.0"  ]
+
+  },}
+
+  "scopedRegistries": [```
+
+    {
+
+      "name": "OpenUPM", ## 🚀 Guida Rapida
+
       "url": "https://package.openupm.com",
-      "scopes": ["com.cosanlab.trgen"]
+
+      "scopes": ["com.cosanlab.trgen"]### Connessione Base
+
     }
+
   ]
-}
-```
 
-## 🚀 Guida Rapida
+}```csharp
 
-### Connessione Base
+```using Trgen;
 
-
-```csharp
-using Trgen;
 using UnityEngine;
 
+## 🚀 Quick Start
+
 public class BasicTriggerExample : MonoBehaviour
-{
+
+### Basic Connection{
+
     private TrgenClient client;
-    
-    async void Start()
-    {
+
+```csharp    
+
+using Trgen;    async void Start()
+
+using UnityEngine;    {
+
         // Crea client con IP di default (192.168.123.1:4242)
-        client = new TrgenClient();
-        client.Verbosity = LogLevel.Info; // Log opzionale
-        
-        try
-        {
-            await client.ConnectAsync();
-            Debug.Log("TriggerBox connesso!");
-        }
-        catch (System.Exception ex)
-        {
-            Debug.LogError($"Connessione fallita: {ex.Message}");
-        }
-    }
+
+public class BasicTriggerExample : MonoBehaviour        client = new TrgenClient();
+
+{        client.Verbosity = LogLevel.Info; // Log opzionale
+
+    private TrgenClient client;        
+
+            try
+
+    async void Start()        {
+
+    {            await client.ConnectAsync();
+
+        // Create client with default IP (192.168.123.1:4242)            Debug.Log("TriggerBox connesso!");
+
+        client = new TrgenClient();        }
+
+        client.Verbosity = LogLevel.Info; // Optional logging        catch (System.Exception ex)
+
+                {
+
+        try            Debug.LogError($"Connessione fallita: {ex.Message}");
+
+        {        }
+
+            await client.ConnectAsync();    }
+
+            Debug.Log("TriggerBox connected!");    
+
+        }    void OnDestroy()
+
+        catch (System.Exception ex)    {
+
+        {        client?.Disconnect(); // Sempre disconnettere
+
+            Debug.LogError($"Connection failed: {ex.Message}");    }
+
+        }}
+
+    }```
+
     
-    void OnDestroy()
+
+    void OnDestroy()### Invio Trigger Singolo
+
     {
-        client?.Disconnect(); // Sempre disconnettere
-    }
-}
+
+        client?.Disconnect(); // Always disconnect```csharp
+
+    }// Trigger singolo su pin NeuroScan 5 (impulso 20μs)
+
+}client.StartTrigger(TriggerPin.NS5);
+
+``````
+
+
+
+### Send Single Trigger### Invio Marker Codificati
+
+
+
+```csharp```csharp
+
+// Single trigger on NeuroScan pin 5 (20μs pulse)// Invia valore 5 sui pin NeuroScan (attiva NS0 e NS2)
+
+client.StartTrigger(TriggerPin.NS5);client.SendMarker(markerNS: 5);
+
 ```
-
-### Invio Trigger Singolo
-
-```csharp
-// Trigger singolo su pin NeuroScan 5 (impulso 20μs)
-client.StartTrigger(TriggerPin.NS5);
-```
-
-### Invio Marker Codificati
-
-```csharp
-// Invia valore 5 sui pin NeuroScan (attiva NS0 e NS2)
-client.SendMarker(markerNS: 5);
 
 // Invio simultaneo su più porte
-client.SendMarker(
+
+### Send Encoded Markersclient.SendMarker(
+
     markerNS: 3,     // NeuroScan: valore 3  
-    markerGPIO: 7,   // GPIO: valore 7
-    LSB: true        // LSB first
-);
+
+```csharp    markerGPIO: 7,   // GPIO: valore 7
+
+// Send value 5 on NeuroScan pins (activates NS0 and NS2)    LSB: true        // LSB first
+
+client.SendMarker(markerNS: 5););
+
 ```
 
-### Esempio Avanzato: Sequenza Personalizzata
+// Simultaneous send on multiple ports
 
-```csharp
-// Crea trigger personalizzato
-var trigger = client.CreateTrgenPort(TriggerPin.NS5);
+client.SendMarker(### Esempio Avanzato: Sequenza Personalizzata
+
+    markerNS: 3,     // NeuroScan: value 3  
+
+    markerGPIO: 7,   // GPIO: value 7```csharp
+
+    LSB: true        // LSB first// Crea trigger personalizzato
+
+);var trigger = client.CreateTrgenPort(TriggerPin.NS5);
+
+```
 
 // Programma sequenza: attivo 50μs, inattivo 10μs, fine
-trigger.SetInstruction(0, InstructionEncoder.ActiveForUs(50));
+
+### Advanced Example: Custom Sequencetrigger.SetInstruction(0, InstructionEncoder.ActiveForUs(50));
+
 trigger.SetInstruction(1, InstructionEncoder.UnactiveForUs(10));
-trigger.SetInstruction(2, InstructionEncoder.End());
 
-// Invia al dispositivo ed esegui
+```csharptrigger.SetInstruction(2, InstructionEncoder.End());
+
+// Create custom trigger
+
+var trigger = client.CreateTrgenPort(TriggerPin.NS5);// Invia al dispositivo ed esegui
+
 client.SendTrgenMemory(trigger);
-client.Start();
+
+// Program sequence: active 50μs, inactive 10μs, endclient.Start();
+
+trigger.SetInstruction(0, InstructionEncoder.ActiveForUs(50));```
+
+trigger.SetInstruction(1, InstructionEncoder.UnactiveForUs(10));
+
+trigger.SetInstruction(2, InstructionEncoder.End());## 📚 Documentazione Completa
+
+
+
+// Send to device and executePer documentazione dettagliata, esempi avanzati e API reference:
+
+client.SendTrgenMemory(trigger);
+
+client.Start();**👉 [Leggi la Documentazione Completa](Documentation/trgen-unity.md)**
+
 ```
-
-## 📚 Documentazione Completa
-
-Per documentazione dettagliata, esempi avanzati e API reference:
-
-**👉 [Leggi la Documentazione Completa](Documentation/trgen-unity.md)**
 
 ### Sommario Rapido
 
+## 📚 Complete Documentation
+
 - **[Caratteristiche dettagliate](Documentation/trgen-unity.md#-caratteristiche)**
-- **[Guida all'installazione](Documentation/trgen-unity.md#-installazione)**  
+
+For detailed documentation, advanced examples and API reference:- **[Guida all'installazione](Documentation/trgen-unity.md#-installazione)**  
+
 - **[Documentazione API completa](Documentation/trgen-unity.md#-documentazione-api)**
-- **[Esempi pratici](Documentation/trgen-unity.md#-esempi-avanzati)**
+
+**👉 [Read Complete Documentation](Documentation/trgen-unity.md)**- **[Esempi pratici](Documentation/trgen-unity.md#-esempi-avanzati)**
+
 - **[Risoluzione problemi](Documentation/trgen-unity.md#-risoluzione-problemi)**
+
+### Quick Summary
 
 ## 🎯 Tipi di Pin Supportati
 
-| Tipo | Pin | Descrizione | Utilizzo Tipico |
-|------|-----|-------------|-----------------|
-| **NeuroScan** | NS0-NS7 | Amplificatori NeuroScan | EEG, MEG, trigger di sincronizzazione |
-| **Synamps** | SA0-SA7 | Amplificatori Synamps | EEG ad alta densità, ricerca |  
+- **[Detailed features](Documentation/trgen-unity.md#-characteristics)**
+
+- **[Installation guide](Documentation/trgen-unity.md#-installation)**  | Tipo | Pin | Descrizione | Utilizzo Tipico |
+
+- **[Complete API documentation](Documentation/trgen-unity.md#-api-documentation)**|------|-----|-------------|-----------------|
+
+- **[Practical examples](Documentation/trgen-unity.md#-advanced-examples)**| **NeuroScan** | NS0-NS7 | Amplificatori NeuroScan | EEG, MEG, trigger di sincronizzazione |
+
+- **[Troubleshooting](Documentation/trgen-unity.md#-troubleshooting)**| **Synamps** | SA0-SA7 | Amplificatori Synamps | EEG ad alta densità, ricerca |  
+
 | **GPIO** | GPIO0-GPIO7 | Pin generici programmabili | Controllo dispositivi esterni |
-| **TMS** | TMSO, TMSI | Stimolazione magnetica | TMS, controllo stimolatori |
 
-## ⚡ Esempi d'Uso Rapidi
+## 🎯 Supported Pin Types| **TMS** | TMSO, TMSI | Stimolazione magnetica | TMS, controllo stimolatori |
 
-### Esperimento EEG
 
-```csharp
-// Marker di inizio trial
+
+| Type | Pins | Description | Typical Usage |## ⚡ Esempi d'Uso Rapidi
+
+|------|------|-------------|---------------|
+
+| **NeuroScan** | NS0-NS7 | NeuroScan amplifiers | EEG, MEG, synchronization triggers |### Esperimento EEG
+
+| **Synamps** | SA0-SA7 | Synamps amplifiers | High-density EEG, research |  
+
+| **GPIO** | GPIO0-GPIO7 | Generic programmable pins | External device control |```csharp
+
+| **TMS** | TMSO, TMSI | Magnetic stimulation | TMS, stimulator control |// Marker di inizio trial
+
 client.SendMarker(markerNS: trialNumber);
 
+## ⚡ Quick Usage Examples
+
 // Presenta stimolo e invia trigger
-client.StartTrigger(TriggerPin.NS1);
+
+### EEG Experimentclient.StartTrigger(TriggerPin.NS1);
+
 ShowStimulus();
 
-// Marker di risposta utente  
-client.SendMarker(markerNS: responseCode);
+```csharp
+
+// Trial start marker// Marker di risposta utente  
+
+client.SendMarker(markerNS: trialNumber);client.SendMarker(markerNS: responseCode);
+
 ```
 
-### Controllo Stimolatore TMS
+// Present stimulus and send trigger
+
+client.StartTrigger(TriggerPin.NS1);### Controllo Stimolatore TMS
+
+ShowStimulus();
 
 ```csharp
-// Attiva stimolatore tramite GPIO
-client.StartTrigger(TriggerPin.GPIO0);
+
+// User response marker  // Attiva stimolatore tramite GPIO
+
+client.SendMarker(markerNS: responseCode);client.StartTrigger(TriggerPin.GPIO0);
+
+```
 
 // Trigger di sincronizzazione su TMS
-client.StartTrigger(TriggerPin.TMSO);
-```
 
-### Sincronizzazione Multi-dispositivo
+### TMS Stimulator Controlclient.StartTrigger(TriggerPin.TMSO);
+
+```
 
 ```csharp
-// Trigger simultaneo su più sistemi
-client.StartTriggerList(new List<int> {
-    TriggerPin.NS0,    // EEG
+
+// Activate stimulator via GPIO### Sincronizzazione Multi-dispositivo
+
+client.StartTrigger(TriggerPin.GPIO0);
+
+```csharp
+
+// Synchronization trigger on TMS// Trigger simultaneo su più sistemi
+
+client.StartTrigger(TriggerPin.TMSO);client.StartTriggerList(new List<int> {
+
+```    TriggerPin.NS0,    // EEG
+
     TriggerPin.GPIO3,  // Eye-tracker  
-    TriggerPin.SA5     // fMRI
+
+### Multi-device Synchronization    TriggerPin.SA5     // fMRI
+
 });
-```
 
-## 🔧 Requisiti Sistema
+```csharp```
 
-- **Unity:** 2021.3 o superiore
-- **Framework:** .NET Standard 2.1
-- **Piattaforme:** Windows, macOS, Linux
-- **TriggerBox:** Dispositivo CoSANLab con firmware compatibile
+// Simultaneous trigger on multiple systems
+
+client.StartTriggerList(new List<int> {## 🔧 Requisiti Sistema
+
+    TriggerPin.NS0,    // EEG
+
+    TriggerPin.GPIO3,  // Eye-tracker  - **Unity:** 2021.3 o superiore
+
+    TriggerPin.SA5     // fMRI- **Framework:** .NET Standard 2.1
+
+});- **Piattaforme:** Windows, macOS, Linux
+
+```- **TriggerBox:** Dispositivo CoSANLab con firmware compatibile
+
 - **Rete:** Connessione Ethernet TCP/IP
+
+## 🔧 System Requirements
 
 ## 🤝 Contribuire
 
-I contributi sono benvenuti! Per contribuire:
+- **Unity:** 2021.3 or higher
 
-1. Fork del repository
-2. Crea branch feature (`git checkout -b feature/AmazingFeature`)
+- **Framework:** .NET Standard 2.1I contributi sono benvenuti! Per contribuire:
+
+- **Platforms:** Windows, macOS, Linux
+
+- **TriggerBox:** CoSANLab device with compatible firmware1. Fork del repository
+
+- **Network:** Ethernet TCP/IP connection2. Crea branch feature (`git checkout -b feature/AmazingFeature`)
+
 3. Commit modifiche (`git commit -m 'Add AmazingFeature'`)
-4. Push branch (`git push origin feature/AmazingFeature`)  
+
+## 🤝 Contributing4. Push branch (`git push origin feature/AmazingFeature`)  
+
 5. Apri Pull Request
+
+Contributions are welcome! To contribute:
 
 ## 📄 Licenza
 
-Distribuito sotto licenza MIT. Vedi `LICENSE` per dettagli.
+1. Fork the repository
 
-## 📞 Supporto & Contatti
+2. Create feature branch (`git checkout -b feature/AmazingFeature`)Distribuito sotto licenza MIT. Vedi `LICENSE` per dettagli.
+
+3. Commit changes (`git commit -m 'Add AmazingFeature'`)
+
+4. Push branch (`git push origin feature/AmazingFeature`)  ## 📞 Supporto & Contatti
+
+5. Open Pull Request
 
 - **🐛 Issues:** [GitHub Issues](https://github.com/stefanolatini/trgen-unity/issues)
-- **📧 Email:** stefanoelatini@hotmail.it  
+
+## 📄 License- **📧 Email:** stefanoelatini@hotmail.it  
+
 - **🏛️ Lab:** [CoSANLab Roma](https://research.uniroma1.it/laboratorio/144782)
-- **📚 Docs:** [Documentazione Completa](Documentation/trgen-unity.md)
+
+Distributed under MIT License. See `LICENSE` for details.- **📚 Docs:** [Documentazione Completa](Documentation/trgen-unity.md)
+
+
+
+## 📞 Support & Contacts---
+
+
+
+- **🐛 Issues:** [GitHub Issues](https://github.com/stefanolatini/trgen-unity/issues)<div align="center">
+
+- **📧 Email:** stefanoelatini@hotmail.it  
+
+- **🏛️ Lab:** [CoSANLab Rome](https://research.uniroma1.it/laboratorio/144782)**Sviluppato con ❤️ da [CoSANLab - Università di Roma La Sapienza](https://research.uniroma1.it/laboratorio/144782)**
+
+- **📚 Docs:** [Complete Documentation](Documentation/trgen-unity.md)
+
+*Per ricerca in neuroscienze cognitive e applicazioni di stimolazione cerebrale*
 
 ---
 
+</div>
+
 <div align="center">
 
-**Sviluppato con ❤️ da [CoSANLab - Università di Roma La Sapienza](https://research.uniroma1.it/laboratorio/144782)**
+**Developed with ❤️ by [CoSANLab - University of Rome La Sapienza](https://research.uniroma1.it/laboratorio/144782)**
 
-*Per ricerca in neuroscienze cognitive e applicazioni di stimolazione cerebrale*
+*For cognitive neuroscience research and brain stimulation applications*
 
 </div>
