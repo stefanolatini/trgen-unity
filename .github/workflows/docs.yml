@@ -1,21 +1,14 @@
-name: 📚 Deploy Documentation (Simple)
+name: 📚 Deploy Documentation with DocFX
 
 on:
   push:
     branches: [ main ]
     paths:
       - 'README.md'
-      - 'Documentation/**'
+      - 'Runtime/**/*.cs'
       - 'CHANGELOG.md'
       - 'docs/**'
       - '.github/workflows/docs.yml'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'README.md'
-      - 'Documentation/**'
-      - 'CHANGELOG.md'
-      - 'docs/**'
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
@@ -29,62 +22,139 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Build job
+  # Build documentation using DocFX
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 📁 Checkout Repository
+      - name: 📁 Checkout
         uses: actions/checkout@v4
+
+      - name: 🔧 Setup .NET
+        uses: actions/setup-dotnet@v3
         with:
-          fetch-depth: 0
+          dotnet-version: '6.0.x'
 
       - name: 📦 Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: 🏗️ Create Documentation Structure
+      - name: 📥 Install DocFX
         run: |
-          # Create docs directory structure
-          mkdir -p docs
-          mkdir -p docs/api
-          mkdir -p docs/examples
-          mkdir -p docs/assets
-          
-          # Copy main documentation files
-          cp README.md docs/
-          cp CHANGELOG.md docs/changelog.md
-          cp LICENSE docs/license.md
-          
-          # Copy images and assets if they exist
-          if [ -d "images" ]; then
-            cp -r images docs/assets/
-          fi
-          
-          echo "📋 Documentation structure created"
+          dotnet tool install -g docfx
+          echo "$(dotnet tool path -g)" >> $GITHUB_PATH
 
-      - name: 📝 Generate Static Documentation
+      - name: 🏗️ Create DocFX Configuration
         run: |
-          # Create main index.html using the existing docsify setup
-          # This creates a fully static site that GitHub Pages can serve directly
-          
-          # The docs directory already contains all the necessary files:
-          # - index.html (docsify configuration)
-          # - _sidebar.md (navigation)
-          # - _navbar.md (top navigation)
-          # - _coverpage.md (cover page)
-          # - README.md (main content)
-          # - API documentation in api/
-          # - Examples in examples/
-          
-          echo "📝 Static documentation ready"
-          
-          # List files for verification
-          echo "📁 Documentation files:"
-          find docs -type f -name "*.md" -o -name "*.html" | head -20
+          # Create docfx.json configuration
+          cat > docfx.json << 'EOF'
+          {
+            "metadata": [
+              {
+                "src": [
+                  {
+                    "files": ["Runtime/**/*.cs"],
+                    "exclude": ["**/bin/**", "**/obj/**"]
+                  }
+                ],
+                "dest": "api",
+                "properties": {
+                  "TargetFramework": "netstandard2.1"
+                },
+                "disableGitFeatures": false,
+                "disableDefaultFilter": false
+              }
+            ],
+            "build": {
+              "content": [
+                {
+                  "files": ["api/**.yml", "api/index.md"]
+                },
+                {
+                  "files": ["README.md", "CHANGELOG.md"],
+                  "dest": "."
+                },
+                {
+                  "files": ["docs/**/*.md"],
+                  "dest": ".",
+                  "exclude": ["docs/README.md"]
+                }
+              ],
+              "resource": [
+                {
+                  "files": ["images/**"]
+                }
+              ],
+              "overwrite": [
+                {
+                  "files": ["apidoc/**.md"],
+                  "exclude": ["obj/**", "_site/**"]
+                }
+              ],
+              "dest": "_site",
+              "globalMetadataFiles": [],
+              "fileMetadataFiles": [],
+              "template": ["default"],
+              "postProcessors": [],
+              "markdownEngineName": "markdig",
+              "noLangKeyword": false,
+              "keepFileLink": false,
+              "cleanupCacheHistory": false,
+              "disableGitFeatures": false,
+              "globalMetadata": {
+                "_appTitle": "TrGEN Unity Library",
+                "_appFooter": "TrGEN Unity Library - CoSANLab, Sapienza University of Rome",
+                "_enableSearch": true,
+                "_gitContribute": {
+                  "repo": "https://github.com/stefanolatini/trgen-unity",
+                  "branch": "main"
+                }
+              }
+            }
+          }
+          EOF
 
-      - name: 📋 Upload artifact
+      - name: 📝 Create API Overview
+        run: |
+          mkdir -p api
+          cat > api/index.md << 'EOF'
+          # TrGEN Unity API Reference
+          
+          Welcome to the complete API reference for TrGEN Unity Library.
+          
+          This documentation is automatically generated from XML documentation comments in the C# source code using DocFX.
+          
+          ## Core Classes
+          
+          - **TrgenClient** - Main client for TriggerBox communication
+          - **TrgenPort** - Programmable trigger with internal memory  
+          - **TrgenConfiguration** - Configuration data structures
+          - **TrgenConfigurationManager** - Configuration import/export
+          - **InstructionEncoder** - Trigger instruction encoding
+          
+          ## Key Features
+          
+          - 🔌 **Ethernet Communication** - Direct TCP/IP connection
+          - ⚡ **Multiple Trigger Types** - NeuroScan, Synamps, TMS, GPIO
+          - 🎯 **Precision Timing** - Microsecond-level control  
+          - 💾 **Configuration Management** - Save/restore complete setups
+          - 🔧 **Automatic Programming** - Hardware trigger programming
+          
+          Browse the API reference using the navigation menu.
+          EOF
+
+      - name: 🔨 Build Documentation with DocFX
+        run: |
+          # Generate metadata from C# source
+          docfx metadata docfx.json
+          
+          # Build the documentation site
+          docfx build docfx.json
+          
+          echo "✅ DocFX documentation build completed"
+
+      - name: 📤 Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./docs
+          path: ./_site
 
   # Deployment job
   deploy:
@@ -99,8 +169,7 @@ jobs:
         id: deployment
         uses: actions/deploy-pages@v4
 
-      - name: 🎉 Deployment Success
+      - name: 🎉 Success
         run: |
-          echo "✅ Documentation successfully deployed!"
+          echo "✅ Documentation deployed successfully!"
           echo "🌐 Site URL: ${{ steps.deployment.outputs.page_url }}"
-          echo "📚 Your documentation is now live on GitHub Pages!"
