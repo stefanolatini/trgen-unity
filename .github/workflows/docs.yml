@@ -8,7 +8,7 @@ on:
       - 'Documentation/**'
       - 'CHANGELOG.md'
       - 'docs/**'
-      - '.github/workflows/docs-simple.yml'
+      - '.github/workflows/docs.yml'
   pull_request:
     branches: [ main ]
     paths:
