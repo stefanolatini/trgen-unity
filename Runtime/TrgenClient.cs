@@ -16,6 +16,253 @@ namespace Trgen
         private readonly int port;
         private readonly int timeout;
         private TrgenImplementation _impl;
+
+
+        #region Configuration Export/Import
+
+        /// <summary>
+        /// Esporta la configurazione attuale del client in un file .trgen
+        /// </summary>
+        /// <param name="filePath">Percorso del file (senza estensione o con .trgen)</param>
+        /// <param name="projectName">Nome del progetto/esperimento</param>
+        /// <param name="description">Descrizione della configurazione</param>
+        /// <param name="author">Autore della configurazione</param>
+        /// <returns>Percorso completo del file salvato</returns>
+        public string ExportConfiguration(string filePath, string projectName = "", string description = "", string author = "")
+        {
+            return TrgenConfigurationManager.ExportConfiguration(this, filePath, projectName, description, author);
+        }
+
+        /// <summary>
+        /// Importa una configurazione da un file .trgen e la applica al client corrente
+        /// </summary>
+        /// <param name="filePath">Percorso del file .trgen da importare</param>
+        /// <param name="applyNetworkSettings">Se applicare anche le impostazioni di rete (richiede riconnessione)</param>
+        /// <returns>Configurazione importata</returns>
+        public TrgenConfiguration ImportConfiguration(string filePath, bool applyNetworkSettings = false)
+        {
+            return TrgenConfigurationManager.ImportConfiguration(this, filePath, applyNetworkSettings);
+        }
+
+        /// <summary>
+        /// Crea una nuova configurazione basata sullo stato attuale del client
+        /// </summary>
+        /// <param name="projectName">Nome del progetto</param>
+        /// <param name="description">Descrizione</param>
+        /// <param name="author">Autore</param>
+        /// <returns>Oggetto configurazione</returns>
+        public TrgenConfiguration CreateConfiguration(string projectName = "", string description = "", string author = "")
+        {
+            var config = new TrgenConfiguration();
+            
+            // Metadati
+            config.Metadata.ProjectName = projectName;
+            config.Metadata.Description = description;
+            config.Metadata.Author = author;
+            config.Metadata.CreatedAt = DateTime.Now;
+            config.Metadata.ModifiedAt = DateTime.Now;
+
+            // Impostazioni default dal client corrente
+            config.Defaults.DefaultTriggerDurationUs = _defaultTriggerDurationUs;
+            config.Defaults.DefaultLogLevel = Verbosity.ToString();
+            config.Defaults.DefaultTimeoutMs = timeout;
+
+            // Impostazioni di rete dal client corrente
+            config.Network.IpAddress = ip;
+            config.Network.Port = port;
+            config.Network.TimeoutMs = timeout;
+
+            // Configurazioni delle porte (tutte le porte disponibili)
+            CreateDefaultPortConfigurations(config);
+
+            return config;
+        }
+
+        /// <summary>
+        /// Applica una configurazione caricata al client corrente
+        /// </summary>
+        /// <param name="config">Configurazione da applicare</param>
+        /// <param name="applyNetworkSettings">Se applicare le impostazioni di rete</param>
+        public void ApplyConfiguration(TrgenConfiguration config, bool applyNetworkSettings = false)
+        {
+            // Applica impostazioni default
+            SetDefaultDuration(config.Defaults.DefaultTriggerDurationUs);
+            
+            // Applica livello di verbosità
+            if (Enum.TryParse<LogLevel>(config.Defaults.DefaultLogLevel, out var logLevel))
+            {
+                Verbosity = logLevel;
+            }
+
+            if (applyNetworkSettings)
+            {
+                UnityEngine.Debug.LogWarning("[TRGEN] Le impostazioni di rete richiedono la creazione di un nuovo client. Utilizzare CreateClientFromConfiguration() invece.");
+            }
+
+            UnityEngine.Debug.Log($"[TRGEN] Configurazione '{config.Metadata.ProjectName}' applicata con successo");
+        }
+
+        /// <summary>
+        /// Crea un nuovo client TrGEN da una configurazione
+        /// </summary>
+        /// <param name="config">Configurazione da utilizzare</param>
+        /// <returns>Nuovo client configurato</returns>
+        public static TrgenClient CreateClientFromConfiguration(TrgenConfiguration config)
+        {
+            var client = new TrgenClient(
+                config.Network.IpAddress,
+                config.Network.Port,
+                config.Network.TimeoutMs
+            );
+
+            client.SetDefaultDuration(config.Defaults.DefaultTriggerDurationUs);
+            
+            if (Enum.TryParse<LogLevel>(config.Defaults.DefaultLogLevel, out var logLevel))
+            {
+                client.Verbosity = logLevel;
+            }
+
+            return client;
+        }
+
+        private void CreateDefaultPortConfigurations(TrgenConfiguration config)
+        {
+            // NeuroScan Ports (NS0-NS7) - Con memoria attuale
+            for (int i = 0; i <= 7; i++)
+            {
+                var portConfig = CreatePortConfigWithMemory(i, $"NeuroScan {i}", "NS", $"NeuroScan trigger port {i}");
+                config.TriggerPorts[$"NS{i}"] = portConfig;
+            }
+
+            // Synamps Ports (SA0-SA7) - Con memoria attuale  
+            for (int i = 0; i <= 7; i++)
+            {
+                var portConfig = CreatePortConfigWithMemory(8 + i, $"Synamps {i}", "SA", $"Synamps trigger port {i}");
+                config.TriggerPorts[$"SA{i}"] = portConfig;
+            }
+
+            // TMS Ports - Con memoria attuale
+            config.TriggerPorts["TMSO"] = CreatePortConfigWithMemory(16, "TMS Output", "TMS", "Transcranial Magnetic Stimulation Output");
+            config.TriggerPorts["TMSI"] = CreatePortConfigWithMemory(17, "TMS Input", "TMS", "Transcranial Magnetic Stimulation Input");
+
+            // GPIO Ports (GPIO0-GPIO7) - Con memoria attuale
+            for (int i = 0; i <= 7; i++)
+            {
+                var portConfig = CreatePortConfigWithMemory(18 + i, $"GPIO {i}", "GPIO", $"General Purpose Input/Output {i}");
+                config.TriggerPorts[$"GPIO{i}"] = portConfig;
+            }
+        }
+
+        /// <summary>
+        /// Crea una configurazione di porta con la memoria attualmente programmata
+        /// </summary>
+        /// <param name="portId">ID della porta</param>
+        /// <param name="portName">Nome della porta</param>
+        /// <param name="portType">Tipo di porta</param>
+        /// <param name="notes">Note descrittive</param>
+        /// <returns>Configurazione della porta con memoria</returns>
+        private TriggerPortConfig CreatePortConfigWithMemory(int portId, string portName, string portType, string notes)
+        {
+            var portConfig = new TriggerPortConfig(_memoryLength)
+            {
+                Id = portId,
+                Name = portName,
+                Type = portType,
+                Enabled = true,
+                Notes = notes
+            };
+
+            try
+            {
+                // Crea TrgenPort per ottenere lo stato attuale della memoria
+                var trgenPort = CreateTrgenPort(portId);
+                portConfig.SetMemoryFromTrgenPort(trgenPort);
+            }
+            catch (Exception ex)
+            {
+                UnityEngine.Debug.LogWarning($"[TRGEN] Impossibile leggere memoria per porta {portId}: {ex.Message}");
+                // Memoria vuota di fallback
+                portConfig.MemoryInstructions = new uint[_memoryLength];
+                portConfig.ProgrammingState = PortProgrammingState.Unknown;
+            }
+
+            return portConfig;
+        }
+
+        /// <summary>
+        /// Programma una porta con istruzioni specifiche e aggiorna la configurazione
+        /// </summary>
+        /// <param name="portId">ID della porta da programmare</param>
+        /// <param name="instructions">Array di istruzioni da programmare</param>
+        /// <returns>TrgenPort programmato</returns>
+        public TrgenPort ProgramPortWithInstructions(int portId, uint[] instructions)
+        {
+            if (instructions == null)
+                throw new ArgumentNullException(nameof(instructions));
+
+            var trgenPort = CreateTrgenPort(portId);
+            
+            // Programma le istruzioni
+            for (int i = 0; i < Math.Min(instructions.Length, trgenPort.Memory.Length); i++)
+            {
+                trgenPort.SetInstruction(i, instructions[i]);
+            }
+
+            // Invia la memoria al dispositivo
+            SendTrgenMemory(trgenPort);
+
+            UnityEngine.Debug.Log($"[TRGEN] Porta {portId} programmata con {instructions.Length} istruzioni");
+            return trgenPort;
+        }
+
+        /// <summary>
+        /// Ottiene la memoria attuale di una porta specifica
+        /// </summary>
+        /// <param name="portId">ID della porta</param>
+        /// <returns>Array della memoria della porta</returns>
+        public uint[] GetPortMemory(int portId)
+        {
+            var trgenPort = CreateTrgenPort(portId);
+            var memory = new uint[trgenPort.Memory.Length];
+            Array.Copy(trgenPort.Memory, memory, trgenPort.Memory.Length);
+            return memory;
+        }
+
+        /// <summary>
+        /// Crea un snapshot completo dello stato di memoria di tutte le porte
+        /// </summary>
+        /// <returns>Dizionario con lo stato di memoria di tutte le porte</returns>
+        public Dictionary<string, uint[]> CreateMemorySnapshot()
+        {
+            var snapshot = new Dictionary<string, uint[]>();
+
+            // NeuroScan
+            for (int i = 0; i <= 7; i++)
+            {
+                snapshot[$"NS{i}"] = GetPortMemory(i);
+            }
+
+            // Synamps
+            for (int i = 0; i <= 7; i++)
+            {
+                snapshot[$"SA{i}"] = GetPortMemory(8 + i);
+            }
+
+            // TMS
+            snapshot["TMSO"] = GetPortMemory(16);
+            snapshot["TMSI"] = GetPortMemory(17);
+
+            // GPIO
+            for (int i = 0; i <= 7; i++)
+            {
+                snapshot[$"GPIO{i}"] = GetPortMemory(18 + i);
+            }
+
+            return snapshot;
+        }
+
+        #endregion
+
         private int _memoryLength = 32;
         private bool connected = false;
         private uint _defaultTriggerDurationUs = 40; // Durata standard del trigger in microsecondi

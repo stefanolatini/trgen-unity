@@ -1,6 +1,6 @@
 {
   "name": "com.cosanlab.trgen",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "TriggerBox CLI",
   "description": "A Unity library that manages Ethernet socket communication with the CoSANLab TriggerBox device.",
   "unity": "2021.3",
