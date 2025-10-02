@@ -1,0 +1,546 @@
+name: 📚 Deploy Documentation
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'README.md'
+      - 'Documentation/**'
+      - 'CHANGELOG.md'
+      - 'docs/**'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'README.md'
+      - 'Documentation/**'
+      - 'CHANGELOG.md'
+      - 'docs/**'
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  # Build job
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📁 Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Fetch all history for git log
+
+      - name: 🔧 Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: 📦 Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: 🏗️ Create Documentation Structure
+        run: |
+          # Create docs directory structure
+          mkdir -p docs
+          mkdir -p docs/.docsify
+          mkdir -p docs/api
+          mkdir -p docs/examples
+          mkdir -p docs/assets
+          
+          # Copy main documentation files
+          cp README.md docs/
+          cp CHANGELOG.md docs/
+          cp LICENSE docs/
+          
+          # Copy images and assets
+          if [ -d "images" ]; then
+            cp -r images docs/assets/
+          fi
+          
+          # Process README for docs site (remove badges that don't work in docsify)
+          sed 's|!\[.*\](https://img.shields.io/.*)||g' README.md > docs/README.md
+          
+          echo "📋 Documentation structure created"
+
+      - name: 📝 Generate API Documentation
+        run: |
+          # Create API documentation from C# files
+          cat > docs/api/README.md << 'EOF'
+          # 🔧 API Reference
+          
+          Complete API reference for TrGEN Unity Library.
+          
+          ## Core Classes
+          
+          ### TrgenClient
+          Main client for TriggerBox communication.
+          
+          ### TrgenPort
+          Represents a programmable trigger with internal instruction memory.
+          
+          ### TrgenConfiguration
+          Configuration management for trigger setups.
+          
+          ### InstructionEncoder
+          Utility for encoding trigger instructions.
+          
+          ## Navigation
+          
+          - [TrgenClient API](api/TrgenClient.md)
+          - [TrgenPort API](api/TrgenPort.md)
+          - [Configuration API](api/Configuration.md)
+          - [Examples](examples/)
+          EOF
+          
+          # Generate individual API files from source code
+          cat > docs/api/TrgenClient.md << 'EOF'
+          # TrgenClient API
+          
+          Main interface for communicating with the TriggerBox device.
+          
+          ## Constructor
+          
+          ```csharp
+          TrgenClient(string ipAddress = "192.168.123.1", int port = 4242, int timeoutMs = 2000)
+          ```
+          
+          ## Properties
+          
+          | Property | Type | Description |
+          |----------|------|-------------|
+          | `Connected` | `bool` | Whether client is connected to device |
+          | `Verbosity` | `LogLevel` | Current logging level |
+          | `IpAddress` | `string` | Device IP address |
+          | `Port` | `int` | Device port number |
+          
+          ## Methods
+          
+          ### Connection Management
+          
+          ```csharp
+          void Connect()
+          void Disconnect() 
+          bool IsAvailable()
+          ```
+          
+          ### Trigger Operations
+          
+          ```csharp
+          void StartTrigger(int triggerPin)
+          void StartTriggerList(List<int> triggerPins)
+          void StopTrigger()
+          void SendMarker(int markerNS = 0, int markerSA = 0, bool stop = false)
+          ```
+          
+          ### Configuration
+          
+          ```csharp
+          void SetDefaultDuration(uint durationUs)
+          string ExportConfiguration(string basePath, ...)
+          TrgenConfiguration ImportConfiguration(string filePath)
+          ```
+          
+          ### Memory Management
+          
+          ```csharp
+          void ProgramPortWithInstructions(int pin, uint[] instructions)
+          uint[] GetPortMemory(int pin)
+          Dictionary<string, uint[]> CreateMemorySnapshot()
+          ```
+          EOF
+          
+          cat > docs/api/TrgenPort.md << 'EOF'
+          # TrgenPort API
+          
+          Represents a programmable trigger with internal instruction memory.
+          
+          ## Constructor
+          
+          ```csharp
+          TrgenPort(int id, int memoryLength)
+          ```
+          
+          ## Properties
+          
+          | Property | Type | Description |
+          |----------|------|-------------|
+          | `Id` | `int` | Trigger identifier |
+          | `Type` | `TriggerType` | Port type (NS, SA, TMS, GPIO) |
+          | `Memory` | `uint[]` | Instruction memory array |
+          
+          ## Methods
+          
+          ```csharp
+          void SetInstruction(int index, uint instruction)
+          ```
+          
+          ## TriggerType Enum
+          
+          ```csharp
+          public enum TriggerType
+          {
+              NS,    // NeuroScan
+              SA,    // Synamps  
+              TMSI,  // TMS Input
+              TMSO,  // TMS Output
+              GPIO   // General Purpose I/O
+          }
+          ```
+          EOF
+          
+          cat > docs/api/Configuration.md << 'EOF'
+          # Configuration API
+          
+          Configuration management system for TrGEN trigger setups.
+          
+          ## TrgenConfiguration
+          
+          Main configuration container.
+          
+          ```csharp
+          public class TrgenConfiguration
+          {
+              public ConfigurationMetadata Metadata { get; set; }
+              public DefaultSettings Defaults { get; set; }
+              public Dictionary<string, TriggerPortConfig> TriggerPorts { get; set; }
+              public NetworkSettings Network { get; set; }
+          }
+          ```
+          
+          ## TriggerPortConfig
+          
+          Individual port configuration.
+          
+          ```csharp
+          public class TriggerPortConfig
+          {
+              public int Id { get; set; }
+              public string Name { get; set; }
+              public string Type { get; set; }
+              public bool Enabled { get; set; }
+              public uint CustomDurationUs { get; set; }
+              public uint[] MemoryInstructions { get; set; }
+              public PortProgrammingState ProgrammingState { get; set; }
+              public string Notes { get; set; }
+          }
+          ```
+          
+          ## TrgenConfigurationManager
+          
+          Static methods for configuration management.
+          
+          ```csharp
+          public static class TrgenConfigurationManager
+          {
+              public static void SaveConfiguration(TrgenConfiguration config, string filePath)
+              public static TrgenConfiguration LoadConfiguration(string filePath)
+              public static TrgenConfiguration ExportConfiguration(TrgenClient client, ...)
+              public static TrgenConfiguration CreatePortConfigurationsFromClient(TrgenClient client)
+          }
+          ```
+          EOF
+          
+          echo "📚 API documentation generated"
+
+      - name: 🎨 Generate Examples Documentation
+        run: |
+          cat > docs/examples/README.md << 'EOF'
+          # 💡 Examples
+          
+          Practical examples for using TrGEN Unity Library.
+          
+          ## Quick Start Examples
+          
+          - [Basic Setup](examples/basic-setup.md)
+          - [Simple Triggers](examples/simple-triggers.md)
+          - [Configuration Management](examples/configuration.md)
+          
+          ## Advanced Examples
+          
+          - [Multi-Port Synchronization](examples/multi-port.md)
+          - [Custom Trigger Sequences](examples/custom-sequences.md)
+          - [Performance Optimization](examples/performance.md)
+          
+          ## Research Applications
+          
+          - [EEG Experiments](examples/eeg.md)
+          - [fMRI Studies](examples/fmri.md)
+          - [TMS Research](examples/tms.md)
+          EOF
+          
+          # Generate individual example files
+          cat > docs/examples/basic-setup.md << 'EOF'
+          # Basic Setup
+          
+          Getting started with TrGEN Unity Library.
+          
+          ## Minimal Setup
+          
+          ```csharp
+          using Trgen;
+          using UnityEngine;
+          
+          public class BasicTriggerController : MonoBehaviour
+          {
+              private TrgenClient client;
+              
+              void Start()
+              {
+                  // Initialize with default settings
+                  client = new TrgenClient();
+                  client.Connect();
+                  
+                  if (client.Connected)
+                  {
+                      Debug.Log("✅ Connected to TriggerBox!");
+                  }
+              }
+              
+              void OnDestroy()
+              {
+                  client?.StopTrigger();
+              }
+          }
+          ```
+          
+          ## Custom Configuration
+          
+          ```csharp
+          void Start()
+          {
+              // Custom IP and timeout
+              client = new TrgenClient("192.168.1.100", 4242, 5000);
+              client.Verbosity = TrgenClient.LogLevel.Debug;
+              client.Connect();
+              
+              // Set default trigger duration
+              client.SetDefaultDuration(25); // 25 microseconds
+          }
+          ```
+          EOF
+          
+          cat > docs/examples/simple-triggers.md << 'EOF'
+          # Simple Triggers
+          
+          Basic trigger operations and timing control.
+          
+          ## Single Trigger
+          
+          ```csharp
+          public void SendStimulus()
+          {
+              // Send trigger on NeuroScan port 5
+              client.StartTrigger(TrgenPin.NS5);
+              Debug.Log("🎯 Stimulus trigger sent!");
+          }
+          ```
+          
+          ## Marker with Stop
+          
+          ```csharp
+          public void SendMarkerAndStop()
+          {
+              // Send marker and stop automatically
+              client.SendMarker(markerNS: 10, stop: true);
+              Debug.Log("📝 Marker sent and stopped");
+          }
+          ```
+          
+          ## Multiple Triggers
+          
+          ```csharp
+          public void SendMultipleTriggers()
+          {
+              var triggerPins = new List<int> { 
+                  TrgenPin.NS0, TrgenPin.NS1, TrgenPin.NS2 
+              };
+              
+              client.StartTriggerList(triggerPins);
+              Debug.Log("🎯 Multiple triggers sent!");
+          }
+          ```
+          EOF
+          
+          echo "💡 Examples documentation generated"
+
+      - name: ⚙️ Setup Docsify
+        run: |
+          # Install docsify-cli
+          npm install -g docsify-cli
+          
+          # Create docsify configuration
+          cat > docs/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <title>TrGEN Unity Library</title>
+            <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+            <meta name="description" content="Professional Unity library for Ethernet communication with CoSANLab TriggerBox device">
+            <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+            <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/docsify@4/lib/themes/vue.css">
+            <link rel="icon" href="https://unity.com/favicon.ico">
+          </head>
+          <body>
+            <div id="app">Loading...</div>
+            <script>
+              window.$docsify = {
+                name: 'TrGEN Unity',
+                repo: 'https://github.com/stefanolatini/trgen-unity',
+                homepage: 'README.md',
+                loadSidebar: true,
+                loadNavbar: true,
+                subMaxLevel: 3,
+                auto2top: true,
+                coverpage: true,
+                search: {
+                  maxAge: 86400000, // Expiration time, the default one day
+                  paths: 'auto',
+                  placeholder: 'Search documentation...',
+                  noData: 'No Results!',
+                  depth: 4,
+                  hideOtherSidebarContent: false,
+                },
+                copyCode: {
+                  buttonText: 'Copy to clipboard',
+                  errorText: 'Error',
+                  successText: 'Copied'
+                },
+                pagination: {
+                  previousText: 'Previous',
+                  nextText: 'Next',
+                  crossChapter: true,
+                  crossChapterText: true,
+                },
+                plugins: [
+                  function(hook, vm) {
+                    hook.beforeEach(function (html) {
+                      // Add edit link
+                      var url = 'https://github.com/stefanolatini/trgen-unity/blob/main/docs/' + vm.route.file
+                      var editHtml = '[:memo: Edit Document](' + url + ')\n'
+                      return editHtml + html
+                    })
+                  }
+                ]
+              }
+            </script>
+            
+            <!-- Docsify v4 -->
+            <script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+            
+            <!-- Plugins -->
+            <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/search.min.js"></script>
+            <script src="//cdn.jsdelivr.net/npm/docsify/lib/plugins/zoom-image.min.js"></script>
+            <script src="//cdn.jsdelivr.net/npm/docsify-copy-code@2"></script>
+            <script src="//cdn.jsdelivr.net/npm/docsify-pagination/dist/docsify-pagination.min.js"></script>
+            
+            <!-- Language highlighting -->
+            <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-csharp.min.js"></script>
+            <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-json.min.js"></script>
+            <script src="//cdn.jsdelivr.net/npm/prismjs@1/components/prism-bash.min.js"></script>
+          </body>
+          </html>
+          EOF
+          
+          # Create sidebar
+          cat > docs/_sidebar.md << 'EOF'
+          - [🏠 Home](/)
+          - [📚 Getting Started](/)
+            - [📦 Installation](/#📦-installation)
+            - [🚀 Quick Start](/#🚀-quick-start)
+            - [🎯 Use Cases](/#🎯-use-cases)
+          
+          - [🔧 API Reference](api/)
+            - [TrgenClient](api/TrgenClient.md)
+            - [TrgenPort](api/TrgenPort.md)
+            - [Configuration](api/Configuration.md)
+          
+          - [💡 Examples](examples/)
+            - [Basic Setup](examples/basic-setup.md)
+            - [Simple Triggers](examples/simple-triggers.md)
+            - [Configuration](examples/configuration.md)
+          
+          - [📋 Reference](CHANGELOG.md)
+          - [📄 License](LICENSE)
+          EOF
+          
+          # Create navbar
+          cat > docs/_navbar.md << 'EOF'
+          - [🏠 Home](/)
+          - [📚 Documentation](api/)
+          - [💡 Examples](examples/)
+          - [📦 Package](https://openupm.com/packages/com.cosanlab.trgen/)
+          - [⭐ GitHub](https://github.com/stefanolatini/trgen-unity)
+          EOF
+          
+          # Create cover page
+          cat > docs/_coverpage.md << 'EOF'
+          <!-- _coverpage.md -->
+          
+          ![logo](assets/images/banner.png)
+          
+          # TrGEN Unity Library
+          
+          > Professional Unity library for Ethernet communication with CoSANLab TriggerBox device
+          
+          - 🔌 **Ethernet Communication** - Direct TCP/IP connection to TriggerBox hardware
+          - ⚡ **Multiple Trigger Types** - NeuroScan, Synamps, TMS, and GPIO ports
+          - 🎯 **Precision Timing** - Microsecond-level trigger duration control
+          - 💾 **Configuration Management** - Save/load complete trigger setups
+          - 🧪 **Research Ready** - EEG, fMRI, TMS, and behavioral studies
+          
+          [GitHub](https://github.com/stefanolatini/trgen-unity)
+          [Get Started](/#📦-installation)
+          EOF
+          
+          echo "⚙️ Docsify setup completed"
+
+      - name: 📤 Build Documentation Site
+        run: |
+          cd docs
+          
+          # Generate static files
+          docsify serve . --port 3000 &
+          DOCSIFY_PID=$!
+          
+          # Wait for server to start
+          sleep 5
+          
+          # Kill the server
+          kill $DOCSIFY_PID || true
+          
+          echo "📤 Documentation site built"
+
+      - name: 📋 Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./docs
+
+  # Deployment job
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: 🚀 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: 🎉 Deployment Success
+        run: |
+          echo "✅ Documentation successfully deployed!"
+          echo "🌐 Site URL: ${{ steps.deployment.outputs.page_url }}"
+          echo "📚 Your documentation is now live on GitHub Pages!"

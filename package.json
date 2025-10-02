@@ -12,7 +12,7 @@
   "keywords": ["trigger", "neuroscan", "trgen", "socket", "unity"],
   "license": "MIT",
   "dependencies": {},
-  "documentationUrl": "https://github.com/CoSANLabRome/TRGen-Unity/blob/main/Documentation/trgen-unity.md",
+  "documentationUrl": "https://stefanolatini.github.io/trgen-unity/",
   "samples": [
     {
       "displayName": "Esempio Base",
@@ -22,11 +22,11 @@
   ],
   "repository": {
     "type": "git",
-    "url": "ssh://git@github.com:CoSANLabRome/TRGen-Unity.git"
+    "url": "https://github.com/stefanolatini/trgen-unity.git"
   },
   "homepage": "https://research.uniroma1.it/laboratorio/144782",
   "bugs": {
-    "url": "https://github.com/CoSANLabRome/TRGen-Unity/issues",
-    "email" : "federico.rossano@iit.it"
+    "url": "https://github.com/stefanolatini/trgen-unity/issues",
+    "email": "stefanoelatini@hotmail.it"
   }
 }

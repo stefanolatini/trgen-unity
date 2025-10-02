@@ -505,7 +505,7 @@ public void TestTriggerSequence()
 
 ```bash
 # Clone repository
-git clone https://github.com/CoSANLabRome/TRGen-Unity.git
+git clone https://github.com/stefanolatini/trgen-unity.git
 
 # Open in Unity 2021.3+
 # Install development dependencies via Package Manager
@@ -523,10 +523,11 @@ Sapienza University of Rome
 
 ## 📞 Support
 
-- **📚 Documentation**: [Full API Documentation](Documentation/trgen-unity.md)
-- **🐛 Issues**: [GitHub Issues](https://github.com/CoSANLabRome/TRGen-Unity/issues)
-- **💬 Discussions**: [GitHub Discussions](https://github.com/CoSANLabRome/TRGen-Unity/discussions)
-- **📧 Email**: federico.rossano@iit.it
+- **🐛 Issues**: [GitHub Issues](https://github.com/stefanolatini/trgen-unity.git/issues)
+- **💬 Discussions**: [GitHub Discussions](https://github.com/stefanolatini/trgen-unity.git/discussions)
+- **📧 Email**: 
+  - federico.rossano@iit.it
+  - stefanoelatini@hotmail.it
 
 ## 🙏 Acknowledgments
 

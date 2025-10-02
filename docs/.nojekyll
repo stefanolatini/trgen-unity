@@ -1,0 +1,45 @@
+# GitHub Pages Configuration
+
+This file ensures GitHub Pages is properly configured for the TrGEN Unity documentation.
+
+The documentation is automatically built and deployed using GitHub Actions workflow.
+
+## Configuration
+
+- **Source**: GitHub Actions workflow (`.github/workflows/docs.yml`)
+- **Framework**: Docsify (static site generator)
+- **Content**: Markdown files from repository
+- **URL**: https://stefanolatini.github.io/trgen-unity/
+
+## Manual Setup Steps
+
+If you need to manually configure GitHub Pages:
+
+1. Go to repository **Settings** → **Pages**
+2. Set **Source** to "GitHub Actions"
+3. The workflow will automatically build and deploy
+
+## Local Development
+
+To preview documentation locally:
+
+```bash
+# Install docsify
+npm install -g docsify-cli
+
+# Serve documentation
+cd docs
+docsify serve . --port 3000
+
+# Open http://localhost:3000
+```
+
+## Content Updates
+
+Documentation is automatically updated when:
+- `README.md` is modified
+- Files in `Documentation/` folder change
+- Files in `docs/` folder change
+- `CHANGELOG.md` is updated
+
+The GitHub Actions workflow rebuilds and redeploys the site automatically.
