@@ -1,4 +1,4 @@
-name: 📚 Deploy Documentation (XMLDoc2MD)
+name: 📚 Deploy Documentation
 
 on:
   push:
@@ -22,87 +22,266 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Build documentation using xmldoc2md
+  # Build documentation with simple XML parser
   build:
     runs-on: ubuntu-latest
     steps:
       - name: 📁 Checkout
         uses: actions/checkout@v4
 
-      - name: 🔧 Setup .NET
-        uses: actions/setup-dotnet@v3
-        with:
-          dotnet-version: '6.0.x'
-
-      - name: 📦 Setup Pages
+      - name: � Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: 📥 Install xmldoc2md
-        run: |
-          dotnet tool install -g xmldoc2md
-          echo "$(dotnet tool path -g)" >> $GITHUB_PATH
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
 
-      - name: 🏗️ Create Project for Documentation
+      - name: � Generate API Documentation
         run: |
-          # Create a temporary project that compiles without Unity dependencies
-          mkdir -p temp_docs
-          
-          # Copy C# files and strip Unity dependencies for documentation
-          find Runtime -name "*.cs" -exec cp {} temp_docs/ \;
-          
-          # Replace UnityEngine.Debug with System.Console for documentation
-          sed -i 's/UnityEngine\.Debug\.Log/System.Console.WriteLine/g' temp_docs/*.cs
-          sed -i 's/using UnityEngine;//g' temp_docs/*.cs
-          sed -i 's/\[Serializable\]//g' temp_docs/*.cs
-          
-          # Create a simple .NET project for documentation
-          cat > temp_docs/TrgenDocs.csproj << 'EOF'
-          <Project Sdk="Microsoft.NET.Sdk">
-            <PropertyGroup>
-              <TargetFramework>netstandard2.1</TargetFramework>
-              <LangVersion>9.0</LangVersion>
-              <GenerateDocumentationFile>true</GenerateDocumentationFile>
-              <DocumentationFile>TrgenDocs.xml</DocumentationFile>
-              <NoWarn>CS0067;CS0108;CS0114;CS0162;CS0164;CS0168;CS0169;CS0183;CS0219;CS0414;CS0618;CS0626;CS0649;CS0693;CS1030;CS1591;CS1998</NoWarn>
-            </PropertyGroup>
-          </Project>
-          EOF
-
-      - name: 🔨 Build Documentation XML
-        run: |
-          cd temp_docs
-          dotnet build TrgenDocs.csproj --configuration Release
-          ls -la *.xml || echo "No XML file generated"
-
-      - name: 📝 Generate Markdown Documentation
-        run: |
+          # Create API documentation directory
           mkdir -p _site/api
           
-          if [ -f "temp_docs/TrgenDocs.xml" ]; then
-            echo "📝 Converting XML documentation to Markdown..."
-            xmldoc2md temp_docs/TrgenDocs.xml _site/api --index-page-name "README"
-          else
-            echo "⚠️ No XML documentation found, creating basic API documentation..."
-            
-            # Fallback: create basic documentation from source comments
-            mkdir -p _site/api
-            echo "# TrGEN Unity API Reference" > _site/api/README.md
-            echo "" >> _site/api/README.md
-            echo "Documentation extracted from C# source files." >> _site/api/README.md
-            echo "" >> _site/api/README.md
-            
-            # Extract class names and summaries
-            for file in Runtime/*.cs; do
-              if [ -f "$file" ]; then
-                echo "## $(basename "$file" .cs)" >> _site/api/README.md
-                echo "" >> _site/api/README.md
-                
-                # Extract summary comments
-                grep -A 3 "/// <summary>" "$file" | sed 's/.*\/\/\/ //' | sed 's/<[^>]*>//g' >> _site/api/README.md || true
-                echo "" >> _site/api/README.md
-              fi
-            done
+          # Create Python script to parse C# XML documentation
+          cat > parse_csharp.py << 'EOF'
+          import re
+          import os
+          from pathlib import Path
+          
+          def parse_xml_doc_comments(file_path):
+              """Parse XML documentation comments from C# file"""
+              with open(file_path, 'r', encoding='utf-8') as f:
+                  content = f.read()
+              
+              # Find all XML doc comment blocks
+              doc_blocks = []
+              lines = content.split('\n')
+              
+              i = 0
+              while i < len(lines):
+                  line = lines[i].strip()
+                  
+                  if line.startswith('/// <summary>'):
+                      # Found start of documentation block
+                      doc_block = {'summary': '', 'params': [], 'returns': '', 'code': ''}
+                      
+                      # Extract summary
+                      if '</summary>' in line:
+                          # Single line summary
+                          summary_match = re.search(r'<summary>(.*?)</summary>', line)
+                          if summary_match:
+                              doc_block['summary'] = summary_match.group(1).strip()
+                      else:
+                          # Multi-line summary
+                          summary_lines = []
+                          i += 1
+                          while i < len(lines) and lines[i].strip().startswith('///'):
+                              doc_line = lines[i].strip().replace('///', '').strip()
+                              if '</summary>' in doc_line:
+                                  doc_line = doc_line.replace('</summary>', '').strip()
+                                  if doc_line:
+                                      summary_lines.append(doc_line)
+                                  break
+                              elif '<param' in doc_line:
+                                  # Handle parameters
+                                  param_match = re.search(r'<param name="([^"]+)">(.*?)</param>', doc_line)
+                                  if param_match:
+                                      doc_block['params'].append({
+                                          'name': param_match.group(1),
+                                          'desc': param_match.group(2).strip()
+                                      })
+                              elif '<returns>' in doc_line:
+                                  # Handle returns
+                                  returns_match = re.search(r'<returns>(.*?)</returns>', doc_line)
+                                  if returns_match:
+                                      doc_block['returns'] = returns_match.group(1).strip()
+                              elif doc_line and not any(tag in doc_line for tag in ['</', '<param', '<returns']):
+                                  summary_lines.append(doc_line)
+                              i += 1
+                          
+                          doc_block['summary'] = ' '.join(summary_lines)
+                      
+                      # Find the following code declaration
+                      i += 1
+                      while i < len(lines) and (not lines[i].strip() or lines[i].strip().startswith('///')):
+                          i += 1
+                      
+                      if i < len(lines):
+                          code_line = lines[i].strip()
+                          doc_block['code'] = code_line
+                          doc_blocks.append(doc_block)
+                  
+                  i += 1
+              
+              return doc_blocks
+          
+          def generate_markdown(class_name, doc_blocks, output_file):
+              """Generate Markdown documentation"""
+              with open(output_file, 'w', encoding='utf-8') as f:
+                  f.write(f"# {class_name} API Reference\\n\\n")
+                  f.write("Auto-generated from C# XML documentation comments.\\n\\n")
+                  f.write("---\\n\\n")
+                  
+                  for block in doc_blocks:
+                      if not block['summary'] and not block['code']:
+                          continue
+                      
+                      # Extract method/class/property name
+                      code = block['code']
+                      name = "Unknown"
+                      section_type = "Method"
+                      
+                      if 'public class' in code:
+                          match = re.search(r'public class (\\w+)', code)
+                          if match:
+                              name = match.group(1)
+                              section_type = "Class"
+                      elif 'public enum' in code:
+                          match = re.search(r'public enum (\\w+)', code)
+                          if match:
+                              name = match.group(1)
+                              section_type = "Enum"
+                      elif '(' in code and ')' in code:
+                          # Method
+                          match = re.search(r'\\b(\\w+)\\s*\\(', code)
+                          if match and match.group(1) not in ['get', 'set']:
+                              name = match.group(1)
+                              section_type = "Method"
+                      elif '{' in code and ('get' in code or 'set' in code):
+                          # Property
+                          match = re.search(r'\\b(\\w+)\\s*{', code)
+                          if match:
+                              name = match.group(1)
+                              section_type = "Property"
+                      
+                      # Write documentation
+                      if section_type == "Class" or section_type == "Enum":
+                          f.write(f"## {name}\\n\\n")
+                      else:
+                          f.write(f"### {name}\\n\\n")
+                      
+                      if block['summary']:
+                          f.write(f"{block['summary']}\\n\\n")
+                      
+                      if block['params']:
+                          f.write("**Parameters:**\\n")
+                          for param in block['params']:
+                              f.write(f"- `{param['name']}`: {param['desc']}\\n")
+                          f.write("\\n")
+                      
+                      if block['returns']:
+                          f.write(f"**Returns:** {block['returns']}\\n\\n")
+                      
+                      if block['code']:
+                          f.write("```csharp\\n")
+                          f.write(f"{block['code']}\\n")
+                          f.write("```\\n\\n")
+                          f.write("---\\n\\n")
+          
+          # Process all C# files
+          cs_files = [
+              ('Runtime/TrgenClient.cs', '_site/api/TrgenClient.md'),
+              ('Runtime/TrgenPort.cs', '_site/api/TrgenPort.md'),
+              ('Runtime/TrgenConfiguration.cs', '_site/api/TrgenConfiguration.md'),
+              ('Runtime/TrgenConfigurationManager.cs', '_site/api/TrgenConfigurationManager.md'),
+              ('Runtime/InstructionEncoder.cs', '_site/api/InstructionEncoder.md'),
+              ('Runtime/Instruction.cs', '_site/api/Instruction.md'),
+              ('Runtime/Trgen.cs', '_site/api/Trgen.md')
+          ]
+          
+          for input_file, output_file in cs_files:
+              if os.path.exists(input_file):
+                  print(f"📝 Processing {input_file}...")
+                  class_name = os.path.basename(input_file).replace('.cs', '')
+                  doc_blocks = parse_xml_doc_comments(input_file)
+                  generate_markdown(class_name, doc_blocks, output_file)
+                  print(f"✅ Generated {output_file}")
+              else:
+                  print(f"⚠️  File not found: {input_file}")
+          
+          # Create API index
+          with open('_site/api/README.md', 'w') as f:
+              f.write("# 🔧 TrGEN Unity API Reference\\n\\n")
+              f.write("Complete API documentation auto-generated from C# XML comments.\\n\\n")
+              f.write("## Core Classes\\n\\n")
+              
+              for input_file, output_file in cs_files:
+                  if os.path.exists(input_file):
+                      class_name = os.path.basename(input_file).replace('.cs', '')
+                      md_name = os.path.basename(output_file)
+                      f.write(f"- [{class_name}]({md_name}) - Main functionality\\n")
+              
+              f.write("\\n## Quick Navigation\\n\\n")
+              f.write("- [🏠 Home](../index.md)\\n")
+              f.write("- [📋 Changelog](../changelog.md)\\n")
+              f.write("- [⭐ GitHub Repository](https://github.com/stefanolatini/trgen-unity)\\n")
+          
+          print("🎉 API documentation generation completed!")
+          EOF
+          
+          # Run the Python script
+          python parse_csharp.py
+
+      - name: 🏗️ Create Documentation Site
+        run: |
+          # Copy main documentation files
+          cp README.md _site/index.md
+          cp CHANGELOG.md _site/changelog.md
+          
+          # Copy images if they exist
+          if [ -d "images" ]; then
+            cp -r images _site/
           fi
+          
+          # Create simple index.html
+          cat > _site/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+              <title>TrGEN Unity Documentation</title>
+              <meta charset="UTF-8">
+              <style>
+                  body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+                  h1 { color: #333; }
+                  .nav a { margin-right: 20px; }
+              </style>
+          </head>
+          <body>
+              <h1>TrGEN Unity Library Documentation</h1>
+              <div class="nav">
+                  <a href="api/">API Reference</a>
+                  <a href="changelog.md">Changelog</a>
+                  <a href="https://github.com/stefanolatini/trgen-unity">GitHub</a>
+              </div>
+              <p>Professional Unity library for Ethernet communication with CoSANLab TriggerBox device.</p>
+          </body>
+          </html>
+          EOF
+          
+          echo "✅ Documentation site created"
+
+      - name: 📤 Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./_site
+
+  # Deployment job
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: 🚀 Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: 🎉 Success
+        run: |
+          echo "✅ Documentation deployed successfully!"
+          echo "🌐 Site URL: ${{ steps.deployment.outputs.page_url }}"
 
       - name: 🏗️ Create Documentation Site
         run: |
