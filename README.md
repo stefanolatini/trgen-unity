@@ -1,5 +1,6 @@
 <h1 align="center">TRGen Unity Package</h1>
 
+<!-- GitHub Actions workflow trigger: 2025-10-02 -->
 
 <p align="center">
   <img src="images/banner.png" alt="TriggerBox Banner" width="600px" height="300px">
