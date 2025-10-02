@@ -68,8 +68,9 @@ namespace Trgen
         /// <param name="client">Client TrGEN su cui applicare la configurazione</param>
         /// <param name="filePath">Percorso del file .trgen da importare</param>
         /// <param name="applyNetworkSettings">Se applicare anche le impostazioni di rete</param>
+        /// <param name="programPorts">Se programmare effettivamente le porte sul dispositivo</param>
         /// <returns>Configurazione importata</returns>
-        public static TrgenConfiguration ImportConfiguration(TrgenClient client, string filePath, bool applyNetworkSettings = false)
+        public static TrgenConfiguration ImportConfiguration(TrgenClient client, string filePath, bool applyNetworkSettings = false, bool programPorts = true)
         {
             if (client == null)
                 throw new ArgumentNullException(nameof(client));
@@ -94,9 +95,10 @@ namespace Trgen
                     throw new Exception("Impossibile deserializzare la configurazione dal file");
 
                 // Applica la configurazione al client
-                ApplyConfigurationToClient(client, config, applyNetworkSettings);
+                ApplyConfigurationToClient(client, config, applyNetworkSettings, programPorts);
 
-                Debug.Log($"[TRGEN] Configurazione importata con successo da: {filePath}");
+                string actionMsg = programPorts ? "importata e PROGRAMMATA" : "importata (senza programmazione)";
+                Debug.Log($"[TRGEN] Configurazione {actionMsg} con successo da: {filePath}");
                 return config;
             }
             catch (Exception ex)
@@ -287,7 +289,7 @@ namespace Trgen
             }
         }
 
-        private static void ApplyConfigurationToClient(TrgenClient client, TrgenConfiguration config, bool applyNetworkSettings)
+        private static void ApplyConfigurationToClient(TrgenClient client, TrgenConfiguration config, bool applyNetworkSettings, bool programPorts = true)
         {
             // Applica impostazioni default
             client.SetDefaultDuration(config.Defaults.DefaultTriggerDurationUs);
@@ -299,20 +301,22 @@ namespace Trgen
             }
 
             // Applica le configurazioni delle porte CON le istruzioni di memoria
-            ApplyPortConfigurationsToClient(client, config);
+            ApplyPortConfigurationsToClient(client, config, programPorts);
 
             if (applyNetworkSettings)
             {
                 Debug.LogWarning("[TRGEN] Le impostazioni di rete richiedono la creazione di un nuovo client per essere applicate.");
             }
 
-            Debug.Log($"[TRGEN] Configurazione applicata: {config.TriggerPorts.Count} porte configurate con memoria");
+            string programmingMsg = programPorts ? "con programmazione hardware" : "senza programmazione hardware";
+            Debug.Log($"[TRGEN] Configurazione applicata {programmingMsg}: {config.TriggerPorts.Count} porte configurate");
         }
 
-        private static void ApplyPortConfigurationsToClient(TrgenClient client, TrgenConfiguration config)
+        private static void ApplyPortConfigurationsToClient(TrgenClient client, TrgenConfiguration config, bool programPorts = true)
         {
             int portsApplied = 0;
             int portsWithInstructions = 0;
+            int portsProgrammed = 0;
 
             foreach (var portPair in config.TriggerPorts)
             {
@@ -321,27 +325,55 @@ namespace Trgen
 
                 try
                 {
-                    // Crea il TrgenPort e applica la configurazione
-                    var trgenPort = client.CreateTrgenPort(portConfig.Id);
-                    portConfig.ApplyToTrgenPort(trgenPort);
-
-                    // Se la porta ha istruzioni programmate, invia la memoria al dispositivo
+                    // Se la porta ha istruzioni programmate ed è abilitata
                     if (portConfig.HasProgrammedInstructions() && portConfig.Enabled)
                     {
-                        client.SendTrgenMemory(trgenPort);
                         portsWithInstructions++;
-                        Debug.Log($"[TRGEN] Applicata configurazione con memoria per {portKey}: {portConfig.GetInstructionsString()}");
+                        
+                        if (programPorts)
+                        {
+                            // Usa ProgramPortWithInstructions per programmare effettivamente la porta sul dispositivo
+                            client.ProgramPortWithInstructions(portConfig.Id, portConfig.MemoryInstructions);
+                            portsProgrammed++;
+                            Debug.Log($"[TRGEN] 🔧 Porta {portKey} (ID: {portConfig.Id}) PROGRAMMATA EFFETTIVAMENTE con {portConfig.GetInstructionCount()} istruzioni");
+                            Debug.Log($"[TRGEN] Istruzioni: {portConfig.GetInstructionsString()}");
+                        }
+                        else
+                        {
+                            // Solo configurazione locale, senza programmazione hardware
+                            var trgenPort = client.CreateTrgenPort(portConfig.Id);
+                            portConfig.ApplyToTrgenPort(trgenPort);
+                            Debug.Log($"[TRGEN] 📋 Porta {portKey} (ID: {portConfig.Id}) configurata localmente (senza programmazione hardware)");
+                        }
+                    }
+                    else if (portConfig.Enabled)
+                    {
+                        // Se è abilitata ma non ha istruzioni, crea comunque il TrgenPort
+                        var trgenPort = client.CreateTrgenPort(portConfig.Id);
+                        portConfig.ApplyToTrgenPort(trgenPort);
+                        Debug.Log($"[TRGEN] ⚪ Porta {portKey} (ID: {portConfig.Id}) configurata ma senza istruzioni programmate");
+                    }
+                    else
+                    {
+                        Debug.Log($"[TRGEN] ⏸️ Porta {portKey} (ID: {portConfig.Id}) disabilitata - saltata");
                     }
 
                     portsApplied++;
                 }
                 catch (Exception ex)
                 {
-                    Debug.LogError($"[TRGEN] Errore applicando configurazione per {portKey}: {ex.Message}");
+                    Debug.LogError($"[TRGEN] ❌ Errore configurando porta {portKey} (ID: {portConfig.Id}): {ex.Message}");
                 }
             }
 
-            Debug.Log($"[TRGEN] Configurazioni applicate: {portsApplied} porte, {portsWithInstructions} con istruzioni programmate");
+            if (programPorts)
+            {
+                Debug.Log($"[TRGEN] ✅ Configurazione APPLICATA: {portsApplied} porte elaborate, {portsWithInstructions} con istruzioni, {portsProgrammed} PROGRAMMATE SUL DISPOSITIVO");
+            }
+            else
+            {
+                Debug.Log($"[TRGEN] ✅ Configurazione CARICATA: {portsApplied} porte elaborate, {portsWithInstructions} con istruzioni (NESSUNA programmazione hardware)");
+            }
         }
 
         private static string GenerateFileHeader(TrgenConfiguration config)

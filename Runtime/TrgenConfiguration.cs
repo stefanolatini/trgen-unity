@@ -260,6 +260,15 @@ namespace Trgen
         }
 
         /// <summary>
+        /// Ottiene il numero di istruzioni programmate
+        /// </summary>
+        /// <returns>Numero di istruzioni valide programmate</returns>
+        public int GetInstructionCount()
+        {
+            return HasProgrammedInstructions() ? LastInstructionIndex + 1 : 0;
+        }
+
+        /// <summary>
         /// Ottiene una rappresentazione string delle istruzioni programmate
         /// </summary>
         /// <returns>String representation delle istruzioni</returns>

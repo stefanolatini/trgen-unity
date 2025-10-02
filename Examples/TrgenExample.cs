@@ -345,8 +345,9 @@ public class TrgenExample : MonoBehaviour
       UnityEngine.Debug.Log("=== STATO PRIMA DELL'IMPORT ===");
       ShowMemorySnapshot();
 
-      // Importa e applica la configurazione CON la memoria programmata
-      var config = client.ImportConfiguration(filePath, applyNetworkSettings: false);
+      // Importa e applica la configurazione CON programmazione automatica delle porte
+      UnityEngine.Debug.Log("🔧 Importando configurazione con PROGRAMMAZIONE AUTOMATICA...");
+      var config = client.ImportConfiguration(filePath, applyNetworkSettings: false, programPorts: true);
       
       UnityEngine.Debug.Log($"Configurazione '{config.Metadata.ProjectName}' importata con successo!");
       UnityEngine.Debug.Log($"Autor: {config.Metadata.Author}");
@@ -373,6 +374,52 @@ public class TrgenExample : MonoBehaviour
     catch (System.Exception ex)
     {
       UnityEngine.Debug.LogError($"Errore durante l'importazione: {ex.Message}");
+    }
+  }
+
+  /// <summary>
+  /// Esempio di importazione configurazione SENZA programmazione automatica
+  /// Utile per preview delle configurazioni o testing senza hardware
+  /// </summary>
+  public void ImportConfigurationWithoutProgramming()
+  {
+    try
+    {
+      string filePath = "Configurations/EEG_Template_WithMemory.trgen";
+      
+      // Verifica che il client sia pronto
+      if (!EnsureClientReady())
+      {
+        UnityEngine.Debug.LogError("Impossibile importare: client non connesso!");
+        return;
+      }
+
+      UnityEngine.Debug.Log("=== IMPORTAZIONE SENZA PROGRAMMAZIONE HARDWARE ===");
+
+      // Importa la configurazione SENZA programmare le porte sul dispositivo
+      UnityEngine.Debug.Log("📋 Importando configurazione SENZA programmazione automatica...");
+      var config = client.ImportConfiguration(filePath, applyNetworkSettings: false, programPorts: false);
+      
+      UnityEngine.Debug.Log($"📖 Configurazione '{config.Metadata.ProjectName}' caricata (solo preview)!");
+      UnityEngine.Debug.Log($"⚠️ NOTA: Le porte NON sono state programmate sul dispositivo hardware");
+      
+      // Mostra dettagli della configurazione
+      int portsWithMemory = 0;
+      foreach (var port in config.TriggerPorts.Values)
+      {
+        if (port.HasProgrammedInstructions())
+        {
+          portsWithMemory++;
+          UnityEngine.Debug.Log($"📋 Porta {port.Name} (ID:{port.Id}) ha {port.GetInstructionCount()} istruzioni (non programmate)");
+        }
+      }
+      
+      UnityEngine.Debug.Log($"📊 Configurazione preview: {portsWithMemory} porte con istruzioni disponibili");
+      UnityEngine.Debug.Log("💡 Per programmare effettivamente, usa ImportConfiguration() con programPorts=true");
+    }
+    catch (System.Exception ex)
+    {
+      UnityEngine.Debug.LogError($"Errore durante l'importazione preview: {ex.Message}");
     }
   }
 

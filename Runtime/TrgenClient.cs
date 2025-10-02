@@ -38,10 +38,11 @@ namespace Trgen
         /// </summary>
         /// <param name="filePath">Percorso del file .trgen da importare</param>
         /// <param name="applyNetworkSettings">Se applicare anche le impostazioni di rete (richiede riconnessione)</param>
+        /// <param name="programPorts">Se programmare effettivamente le porte sul dispositivo hardware</param>
         /// <returns>Configurazione importata</returns>
-        public TrgenConfiguration ImportConfiguration(string filePath, bool applyNetworkSettings = false)
+        public TrgenConfiguration ImportConfiguration(string filePath, bool applyNetworkSettings = false, bool programPorts = true)
         {
-            return TrgenConfigurationManager.ImportConfiguration(this, filePath, applyNetworkSettings);
+            return TrgenConfigurationManager.ImportConfiguration(this, filePath, applyNetworkSettings, programPorts);
         }
 
         /// <summary>
