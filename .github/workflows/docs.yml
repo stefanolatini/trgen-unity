@@ -1,4 +1,4 @@
-name: 📚 Deploy Documentation with DocFX
+name: 📚 Deploy Documentation (XMLDoc2MD)
 
 on:
   push:
@@ -22,7 +22,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Build documentation using DocFX
+  # Build documentation using xmldoc2md
   build:
     runs-on: ubuntu-latest
     steps:
@@ -37,119 +37,85 @@ jobs:
       - name: 📦 Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: 📥 Install DocFX
+      - name: 📥 Install xmldoc2md
         run: |
-          dotnet tool install -g docfx
+          dotnet tool install -g xmldoc2md
           echo "$(dotnet tool path -g)" >> $GITHUB_PATH
 
-      - name: 🏗️ Create DocFX Configuration
+      - name: 🏗️ Create Project for Documentation
         run: |
-          # Create docfx.json configuration
-          cat > docfx.json << 'EOF'
-          {
-            "metadata": [
-              {
-                "src": [
-                  {
-                    "files": ["Runtime/**/*.cs"],
-                    "exclude": ["**/bin/**", "**/obj/**"]
-                  }
-                ],
-                "dest": "api",
-                "properties": {
-                  "TargetFramework": "netstandard2.1"
-                },
-                "disableGitFeatures": false,
-                "disableDefaultFilter": false
-              }
-            ],
-            "build": {
-              "content": [
-                {
-                  "files": ["api/**.yml", "api/index.md"]
-                },
-                {
-                  "files": ["README.md", "CHANGELOG.md"],
-                  "dest": "."
-                },
-                {
-                  "files": ["docs/**/*.md"],
-                  "dest": ".",
-                  "exclude": ["docs/README.md"]
-                }
-              ],
-              "resource": [
-                {
-                  "files": ["images/**"]
-                }
-              ],
-              "overwrite": [
-                {
-                  "files": ["apidoc/**.md"],
-                  "exclude": ["obj/**", "_site/**"]
-                }
-              ],
-              "dest": "_site",
-              "globalMetadataFiles": [],
-              "fileMetadataFiles": [],
-              "template": ["default"],
-              "postProcessors": [],
-              "markdownEngineName": "markdig",
-              "noLangKeyword": false,
-              "keepFileLink": false,
-              "cleanupCacheHistory": false,
-              "disableGitFeatures": false,
-              "globalMetadata": {
-                "_appTitle": "TrGEN Unity Library",
-                "_appFooter": "TrGEN Unity Library - CoSANLab, Sapienza University of Rome",
-                "_enableSearch": true,
-                "_gitContribute": {
-                  "repo": "https://github.com/stefanolatini/trgen-unity",
-                  "branch": "main"
-                }
-              }
-            }
-          }
+          # Create a temporary project that compiles without Unity dependencies
+          mkdir -p temp_docs
+          
+          # Copy C# files and strip Unity dependencies for documentation
+          find Runtime -name "*.cs" -exec cp {} temp_docs/ \;
+          
+          # Replace UnityEngine.Debug with System.Console for documentation
+          sed -i 's/UnityEngine\.Debug\.Log/System.Console.WriteLine/g' temp_docs/*.cs
+          sed -i 's/using UnityEngine;//g' temp_docs/*.cs
+          sed -i 's/\[Serializable\]//g' temp_docs/*.cs
+          
+          # Create a simple .NET project for documentation
+          cat > temp_docs/TrgenDocs.csproj << 'EOF'
+          <Project Sdk="Microsoft.NET.Sdk">
+            <PropertyGroup>
+              <TargetFramework>netstandard2.1</TargetFramework>
+              <LangVersion>9.0</LangVersion>
+              <GenerateDocumentationFile>true</GenerateDocumentationFile>
+              <DocumentationFile>TrgenDocs.xml</DocumentationFile>
+              <NoWarn>CS0067;CS0108;CS0114;CS0162;CS0164;CS0168;CS0169;CS0183;CS0219;CS0414;CS0618;CS0626;CS0649;CS0693;CS1030;CS1591;CS1998</NoWarn>
+            </PropertyGroup>
+          </Project>
           EOF
 
-      - name: 📝 Create API Overview
+      - name: 🔨 Build Documentation XML
         run: |
-          mkdir -p api
-          cat > api/index.md << 'EOF'
-          # TrGEN Unity API Reference
-          
-          Welcome to the complete API reference for TrGEN Unity Library.
-          
-          This documentation is automatically generated from XML documentation comments in the C# source code using DocFX.
-          
-          ## Core Classes
-          
-          - **TrgenClient** - Main client for TriggerBox communication
-          - **TrgenPort** - Programmable trigger with internal memory  
-          - **TrgenConfiguration** - Configuration data structures
-          - **TrgenConfigurationManager** - Configuration import/export
-          - **InstructionEncoder** - Trigger instruction encoding
-          
-          ## Key Features
-          
-          - 🔌 **Ethernet Communication** - Direct TCP/IP connection
-          - ⚡ **Multiple Trigger Types** - NeuroScan, Synamps, TMS, GPIO
-          - 🎯 **Precision Timing** - Microsecond-level control  
-          - 💾 **Configuration Management** - Save/restore complete setups
-          - 🔧 **Automatic Programming** - Hardware trigger programming
-          
-          Browse the API reference using the navigation menu.
-          EOF
+          cd temp_docs
+          dotnet build TrgenDocs.csproj --configuration Release
+          ls -la *.xml || echo "No XML file generated"
 
-      - name: 🔨 Build Documentation with DocFX
+      - name: 📝 Generate Markdown Documentation
         run: |
-          # Generate metadata from C# source
-          docfx metadata docfx.json
+          mkdir -p _site/api
           
-          # Build the documentation site
-          docfx build docfx.json
+          if [ -f "temp_docs/TrgenDocs.xml" ]; then
+            echo "📝 Converting XML documentation to Markdown..."
+            xmldoc2md temp_docs/TrgenDocs.xml _site/api --index-page-name "README"
+          else
+            echo "⚠️ No XML documentation found, creating basic API documentation..."
+            
+            # Fallback: create basic documentation from source comments
+            mkdir -p _site/api
+            echo "# TrGEN Unity API Reference" > _site/api/README.md
+            echo "" >> _site/api/README.md
+            echo "Documentation extracted from C# source files." >> _site/api/README.md
+            echo "" >> _site/api/README.md
+            
+            # Extract class names and summaries
+            for file in Runtime/*.cs; do
+              if [ -f "$file" ]; then
+                echo "## $(basename "$file" .cs)" >> _site/api/README.md
+                echo "" >> _site/api/README.md
+                
+                # Extract summary comments
+                grep -A 3 "/// <summary>" "$file" | sed 's/.*\/\/\/ //' | sed 's/<[^>]*>//g' >> _site/api/README.md || true
+                echo "" >> _site/api/README.md
+              fi
+            done
+          fi
+
+      - name: 🏗️ Create Documentation Site
+        run: |
+          # Copy main documentation files
+          cp README.md _site/index.md
+          cp CHANGELOG.md _site/changelog.md
           
-          echo "✅ DocFX documentation build completed"
+          # Copy images if they exist
+          if [ -d "images" ]; then
+            cp -r images _site/
+          fi
+          
+          echo "✅ Documentation site created"
 
       - name: 📤 Upload artifact
         uses: actions/upload-pages-artifact@v3
