@@ -1,32 +1,18 @@
-<h1 align="center">TRGen Unity Package</h1>
+<h1 align="center">TrGEN-Unity</h1>
 
 <!-- GitHub Actions workflow trigger: 2025-10-02 -->
-
+<!-- 
 <p align="center">
   <img src="images/banner.png" alt="TriggerBox Banner" width="600px" height="300px">
 
 </p>
+ -->
 
-
-<h3 align="center">A Unity library for Ethernet communication with CoSANLab TriggerBox device</h3><h3 align="center">Una libreria Unity per la comunicazione Ethernet con il dispositivo CoSANLab TriggerBox</h3>
-
-
-
-<p align="center">
 
 ![Unity](https://img.shields.io/badge/Unity-2021.3%2B-000000?style=flat&logo=unity&logoColor=white)
 ![.NET](https://img.shields.io/badge/.NET-Standard%202.1-512BD4?style=flat&logo=dotnet&logoColor=white)
 ![C#](https://img.shields.io/badge/C%23-9.0-239120?style=flat&logo=c-sharp&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey?style=flat)
-
-</p>
-
-> **📦 Note for Developers:** 
-> This repository contains TWO package.json files:
-> - `package.json` - Unity/OpenUPM package configuration (DO NOT MODIFY)
-> - `package-docs.json` - VuePress documentation dependencies (for GitHub Pages)
-> 
-> Use `./test-docs-build.sh` to test documentation without affecting Unity package.
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat)
 ![Version](https://img.shields.io/badge/Version-1.0.1-blue?style=flat)
 [![openupm](https://img.shields.io/npm/v/com.cosanlab.trgen?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.cosanlab.trgen/)
