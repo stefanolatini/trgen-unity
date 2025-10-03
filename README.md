@@ -1,6 +1,7 @@
 <h1 align="center">TrGEN-Unity</h1>
 
 <!-- GitHub Actions workflow trigger: 2025-10-02 -->
+
 <!-- 
 <p align="center">
   <img src="images/banner.png" alt="TriggerBox Banner" width="600px" height="300px">
@@ -17,7 +18,6 @@
 ![Version](https://img.shields.io/badge/Version-1.0.1-blue?style=flat)
 [![openupm](https://img.shields.io/npm/v/com.cosanlab.trgen?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.cosanlab.trgen/)
 
-</p>
 
 A professional Unity library for **Ethernet socket communication** with the **CoSANLab TriggerBox** device. Enables precise trigger control for neuroscience experiments, EEG/fMRI studies, and research applications requiring hardware synchronization.
 
