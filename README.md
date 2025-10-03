@@ -28,7 +28,7 @@
 > 
 > Use `./test-docs-build.sh` to test documentation without affecting Unity package.
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat)
-![Version](https://img.shields.io/badge/Version-1.0.0-blue?style=flat)
+![Version](https://img.shields.io/badge/Version-1.0.1-blue?style=flat)
 [![openupm](https://img.shields.io/npm/v/com.cosanlab.trgen?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.cosanlab.trgen/)
 
 </p>

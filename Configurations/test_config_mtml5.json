@@ -5,14 +5,14 @@
     "createdDate": "2025-10-03T00:00:00Z",
     "author": "TrGEN Unity System",
     "deviceInfo": {
-      "model": "TriggerBox Pro",
+      "model": "TriggerBox",
       "firmware": "2.1.0",
       "serialNumber": "TB-TEST-001"
     }
   },
   "networkSettings": {
-    "ipAddress": "192.168.1.100",
-    "port": 4000,
+    "ipAddress": "192.168.123.1",
+    "port": 4242,
     "connectionTimeout": 5000,
     "enableAutoReconnect": true
   },

@@ -357,7 +357,7 @@ class LegacyDocGenerator:
             f.write("    async void Start()\n")
             f.write("    {\n")
             f.write("        client = new TrgenClient();\n")
-            f.write("        await client.ConnectAsync('192.168.1.100', 4000);\n")
+            f.write("        await client.ConnectAsync('192.168.123.1', 4242);\n")
             f.write("        Debug.Log('Connesso!');\n")
             f.write("    }\n\n")
             f.write("    async void SendTrigger()\n")
@@ -376,8 +376,8 @@ class LegacyDocGenerator:
             f.write("```json\n")
             f.write('{\n')
             f.write('  "networkSettings": {\n')
-            f.write('    "ipAddress": "192.168.1.100",\n')
-            f.write('    "port": 4000\n')
+            f.write('    "ipAddress": "192.168.123.1",\n')
+            f.write('    "port": 4242\n')
             f.write('  },\n')
             f.write('  "triggerPorts": [\n')
             f.write('    {\n')
@@ -396,7 +396,7 @@ class LegacyDocGenerator:
             f.write("### Errore: Impossibile connettersi\n\n")
             f.write("1. Verificare l'indirizzo IP del dispositivo\n")
             f.write("2. Controllare la connessione di rete\n")
-            f.write("3. Verificare che la porta 4000 sia aperta\n\n")
+            f.write("3. Verificare che la porta 4242 sia aperta\n\n")
             f.write("### Timeout di Connessione\n\n")
             f.write("- Aumentare il valore di timeout\n")
             f.write("- Verificare la stabilità della rete\n\n")
@@ -431,7 +431,7 @@ class LegacyDocGenerator:
             f.write("        \n")
             f.write("        try\n")
             f.write("        {\n")
-            f.write("            await client.ConnectAsync('192.168.1.100', 4000);\n")
+            f.write("            await client.ConnectAsync('192.168.123.1', 4242);\n")
             f.write("            Debug.Log('Connessione stabilita!');\n")
             f.write("            \n")
             f.write("            var impl = await client.RequestImplementationAsync();\n")
@@ -459,7 +459,7 @@ class LegacyDocGenerator:
             f.write("    async void LoadConfiguration()\n")
             f.write("    {\n")
             f.write("        var client = new TrgenClient();\n")
-            f.write("        await client.ConnectAsync('192.168.1.100', 4000);\n")
+            f.write("        await client.ConnectAsync('192.168.123.1', 4242);\n")
             f.write("        \n")
             f.write("        string configPath = Path.Combine(\n")
             f.write("            Application.streamingAssetsPath, \n")
@@ -495,7 +495,7 @@ class LegacyDocGenerator:
             f.write("    async void Start()\n")
             f.write("    {\n")
             f.write("        client = new TrgenClient();\n")
-            f.write("        await client.ConnectAsync('192.168.1.100', 4000);\n")
+            f.write("        await client.ConnectAsync('192.168.123.1', 4242);\n")
             f.write("        \n")
             f.write("        await SendSequence();\n")
             f.write("    }\n\n")
@@ -534,7 +534,7 @@ class LegacyDocGenerator:
             f.write("        \n")
             f.write("        try\n")
             f.write("        {\n")
-            f.write("            await client.ConnectAsync('192.168.1.100', 4000);\n")
+            f.write("            await client.ConnectAsync('192.168.123.1', 4242);\n")
             f.write("            Debug.Log('Connesso con successo!');\n")
             f.write("        }\n")
             f.write("        catch (TimeoutException ex)\n")
@@ -718,7 +718,7 @@ public class TriggerExample : MonoBehaviour
     {
         // Connessione al dispositivo
         client = new TrgenClient();
-        await client.ConnectAsync("192.168.1.100", 4000);
+        await client.ConnectAsync("192.168.123.1", 4242);
         
         // Invio trigger
         await client.StartTriggerAsync(TrgenPin.NS0);
