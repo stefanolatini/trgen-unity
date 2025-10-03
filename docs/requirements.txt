@@ -1,0 +1,10 @@
+# Sphinx requirements per documentazione C# TrGEN Unity
+sphinx>=7.0.0
+furo>=2023.9.10
+sphinxcontrib-mermaid>=0.9.2
+sphinxsharp>=2.0.0
+
+# Opzionali per funzionalità aggiuntive
+sphinx-copybutton>=0.5.2
+sphinx-design>=0.5.0
+sphinx-tabs>=3.4.1
