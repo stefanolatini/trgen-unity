@@ -50,6 +50,7 @@ ExportedObj/
 *.VC.db
 
 # Documentation build artifacts
+docs-site/
 public/
 dist/
 node_modules/

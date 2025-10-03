@@ -4,14 +4,16 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'docs-site/**'
       - 'Runtime/**'
+      - 'generate_legacy_docs.py'
+      - 'package-docs.json'
       - '.github/workflows/docs-deploy.yml'
   pull_request:
     branches: [ main ]
     paths:
-      - 'docs-site/**'
       - 'Runtime/**'
+      - 'generate_legacy_docs.py'
+      - 'package-docs.json'
   workflow_dispatch:
 
 # Imposta permissions per GitHub Pages
@@ -42,7 +44,12 @@ jobs:
       with:
         node-version: '18'
         
-    - name: � Cache Dependencies
+    - name: 🐍 Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.x'
+        
+    - name: 💾 Cache Dependencies
       uses: actions/cache@v3
       with:
         path: ~/.npm
@@ -50,17 +57,28 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-node-
         
-    - name: �🔧 Configure Pages
+    - name: 🔧 Configure Pages
       uses: actions/configure-pages@v4
       
-    - name: 📚 Install Documentation Dependencies
+    - name: 🏗️ Generate Documentation Site
       run: |
-        echo "📦 Installing VuePress and plugins..."
+        echo "📚 Generating documentation structure..."
+        
+        # 1. Genera la documentazione usando lo script Python
+        echo "🐍 Running Python documentation generator..."
+        python3 generate_legacy_docs.py --source Runtime --output docs-site
+        
+        # 2. Copia il banner esistente come hero image per VuePress
+        echo "🖼️ Setting up hero image..."
+        mkdir -p docs-site/.vuepress/public
+        cp images/banner.png docs-site/.vuepress/public/hero.png
+        
+        # 3. Setup package.json per VuePress
+        echo "📦 Setting up VuePress dependencies..."
         cp package-docs.json package.json
         npm install --production=false
         
-    - name: 🏗️ Build VuePress Site
-      run: |
+        # 4. Build del sito VuePress
         echo "🏗️ Building VuePress documentation..."
         npm run build
         
