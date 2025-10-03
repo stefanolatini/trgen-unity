@@ -1,4 +1,9 @@
-## 1.0.1 (upcoming)
+## 1.0.1 
+
+Features:
+  
+  - Trgen Configurazion Import/Export
+  - Performance improvements
 
 Fixes:
 

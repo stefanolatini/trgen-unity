@@ -49,6 +49,13 @@ ExportedObj/
 *.opendb
 *.VC.db
 
+# Documentation build artifacts
+public/
+dist/
+node_modules/
+*.tgz
+.npm
+
 # Unity3D generated meta files
 *.pidb.meta
 *.pdb.meta

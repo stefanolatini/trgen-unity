@@ -32,7 +32,7 @@ namespace Trgen
     /// trigger.SetInstruction(2, InstructionEncoder.Repeat(0, 3));
     /// trigger.SetInstruction(3, InstructionEncoder.End());
     /// 
-    /// client.SendTrgenMemory(trigger);
+    /// client.SetTrgenMemory(trigger);
     /// </code>
     /// </example>
     public static class InstructionEncoder

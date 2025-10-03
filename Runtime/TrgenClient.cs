@@ -210,7 +210,7 @@ namespace Trgen
             }
 
             // Invia la memoria al dispositivo
-            SendTrgenMemory(trgenPort);
+            SetTrgenMemory(trgenPort);
 
             UnityEngine.Debug.Log($"[TRGEN] Porta {portId} programmata con {instructions.Length} istruzioni");
             return trgenPort;
@@ -524,7 +524,7 @@ namespace Trgen
         public int GetStatus() => ParseAckValue(SendPacket(0x05), 0x05);
         public int GetGpio() => ParseAckValue(SendPacket(0x07), 0x07);
 
-        public void SendTrgenMemory(TrgenPort t)
+        public void SetTrgenMemory(TrgenPort t)
         {
             int id = t.Id;
             int packetId = 0x01 | (id << 24);
@@ -542,7 +542,7 @@ namespace Trgen
             t.SetInstruction(0, InstructionEncoder.End());
             for (int i = 1; i < _memoryLength; i++)
                 t.SetInstruction(i, InstructionEncoder.NotAdmissible());
-            SendTrgenMemory(t);
+            SetTrgenMemory(t);
         }
 
         public void ResetAllTMSO()
@@ -551,7 +551,7 @@ namespace Trgen
             t.SetInstruction(0, InstructionEncoder.End());
             for (int i = 1; i < _memoryLength; i++)
                 t.SetInstruction(i, InstructionEncoder.NotAdmissible());
-            SendTrgenMemory(t);
+            SetTrgenMemory(t);
         }
 
         public void ResetAllSA()
@@ -572,7 +572,7 @@ namespace Trgen
                 sa.SetInstruction(0, InstructionEncoder.End());
                 for (int j = 1; j < _memoryLength; j++)
                     sa.SetInstruction(j, InstructionEncoder.NotAdmissible());
-                SendTrgenMemory(sa);
+                SetTrgenMemory(sa);
             }
         }
 
@@ -594,7 +594,7 @@ namespace Trgen
                 gpio.SetInstruction(0, InstructionEncoder.End());
                 for (int j = 1; j < _memoryLength; j++)
                     gpio.SetInstruction(j, InstructionEncoder.NotAdmissible());
-                SendTrgenMemory(gpio);
+                SetTrgenMemory(gpio);
             }
         }
         public void ResetAllNS()
@@ -615,7 +615,7 @@ namespace Trgen
                 ns.SetInstruction(0, InstructionEncoder.End());
                 for (int j = 1; j < _memoryLength; j++)
                     ns.SetInstruction(j, InstructionEncoder.NotAdmissible());
-                SendTrgenMemory(ns);
+                SetTrgenMemory(ns);
             }
         }
 
@@ -626,7 +626,7 @@ namespace Trgen
             t.SetInstruction(2, InstructionEncoder.End());
             for (int i = 3; i < _memoryLength; i++)
                 t.SetInstruction(i, InstructionEncoder.NotAdmissible());
-            SendTrgenMemory(t);
+            SetTrgenMemory(t);
         }
 
         /// <summary>

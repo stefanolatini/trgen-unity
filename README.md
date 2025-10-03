@@ -26,6 +26,47 @@
 
 A professional Unity library for **Ethernet socket communication** with the **CoSANLab TriggerBox** device. Enables precise trigger control for neuroscience experiments, EEG/fMRI studies, and research applications requiring hardware synchronization.
 
+
+### Architecture
+
+As explained in this [Mermaid](https://github.com/mermaid-js/mermaid) diagram, we see that we can "attach" n (0-25) TrgenPorts to the `TrgenClient`
+
+```mermaid
+graph TD
+    A[TrgenClient]
+    A --> Impl[TrgenImplementation]
+    A --> B0[TrgenPort 0]
+    A --> B1[TrgenPort 1]
+    A --> BN[TrgenPort n]
+    B0 --> P0[TrgenPin]
+    B1 --> P1[TrgenPin]
+    BN --> PN[TrgenPin]
+    B0 --> M0[Memory]
+    B1 --> M1[Memory]
+    BN --> MN[Memory]
+    M0 --> I0[Instruction 0]
+    M0 --> I1[Instruction 1]
+    M0 --> I2[Instruction n]
+    M1 --> J0[Instruction 0]
+    M1 --> J1[Instruction 1]
+    M1 --> J2[Instruction n]
+    MN --> K0[Instruction 0]
+    MN --> K1[Instruction 1]
+    MN --> K2[Instruction n]
+```
+
+```python
+client = TrgenClient() # now I can use this client for any purpose.
+```
+
+Each `TrgenPort`can be programmed with a bunch of instructions.
+We can use the function `SetInstruction()` in many memory slots.
+Finally, we can use `SetTrgenMemory` to a specific `TrgenPort` and execute the `TrgenClient` with `client.start()`
+
+#### NOTE
+Each TrgenPort can support a list of N instructions, where N = 2^MTML (Max TrgenPort Memory Length)
+
+
 ## 🚀 Features
 
 - **🔌 Ethernet Communication**: Direct TCP/IP connection to TriggerBox hardware
@@ -69,12 +110,12 @@ openupm add com.cosanlab.trgen
 
 1. Open **Unity Package Manager** (`Window` → `Package Manager`)
 2. Click the **`+`** button and select **`Add package from git URL`**
-3. Enter: `https://github.com/CoSANLabRome/TRGen-Unity.git`
+3. Enter: `https://github.com/stefanolatini/trgen-unity.git`
 4. Click **`Add`**
 
 ### Option 3: Manual Installation
 
-1. Download the latest release from [GitHub Releases](https://github.com/CoSANLabRome/TRGen-Unity/releases)
+1. Download the latest release from [GitHub Releases](https://github.com/stefanolatini/trgen-unity/releases)
 2. Extract and copy to your project's `Packages` folder
 3. Unity will automatically detect and import the package
 
@@ -540,6 +581,6 @@ Sapienza University of Rome
 
 <div align="center">
 
-**[⭐ Star this repository](https://github.com/CoSANLabRome/TRGen-Unity) if it helps your research!**
+**[⭐ Star this repository](https://github.com/stefanolatini/trgen-unity) if it helps your research!**
 
 </div>

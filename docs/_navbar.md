@@ -1,5 +1,0 @@
-- [🏠 Home](/)
-- [📚 Documentation](api/)
-- [💡 Examples](examples/)
-- [📦 Package](https://openupm.com/packages/com.cosanlab.trgen/)
-- [⭐ GitHub](https://github.com/stefanolatini/trgen-unity)
