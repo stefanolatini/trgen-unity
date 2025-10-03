@@ -26,8 +26,17 @@ class LegacyDocGenerator:
         print("=" * 50)
         
         # Crea directory output per VuePress
+        os.makedirs(self.output_dir, exist_ok=True)
         os.makedirs(self.api_dir, exist_ok=True)
         os.makedirs(self.guide_dir, exist_ok=True)
+        os.makedirs(self.examples_dir, exist_ok=True)
+        os.makedirs(os.path.join(self.output_dir, ".vuepress"), exist_ok=True)
+        
+        # Genera la configurazione VuePress
+        self.generate_vuepress_config()
+        
+        # Genera il README.md principale (homepage)
+        self.generate_main_readme()
         os.makedirs(self.examples_dir, exist_ok=True)
         
         # Trova tutti i file C#
@@ -543,6 +552,218 @@ class LegacyDocGenerator:
             f.write("    }\n")
             f.write("}\n")
             f.write("```\n\n")
+
+    def generate_vuepress_config(self):
+        """Genera configurazione VuePress"""
+        config_dir = os.path.join(self.output_dir, ".vuepress")
+        config_file = os.path.join(config_dir, "config.js")
+        
+        with open(config_file, 'w', encoding='utf-8') as f:
+            f.write("""module.exports = {
+  title: 'TrGEN Unity Documentation',
+  description: 'Documentazione completa per il package Unity TrGEN di CoSANLab',
+  base: '/trgen-unity/',
+  head: [
+    ['link', { rel: 'icon', href: '/hero.png' }],
+    ['meta', { name: 'theme-color', content: '#3eaf7c' }],
+    ['meta', { name: 'apple-mobile-web-app-capable', content: 'yes' }],
+    ['meta', { name: 'apple-mobile-web-app-status-bar-style', content: 'black' }]
+  ],
+  
+  themeConfig: {
+    repo: 'stefanolatini/trgen-unity',
+    editLinks: true,
+    docsDir: 'docs',
+    editLinkText: 'Modifica questa pagina su GitHub',
+    lastUpdated: 'Ultimo aggiornamento',
+    
+    nav: [
+      {
+        text: 'Home',
+        link: '/'
+      },
+      {
+        text: 'Guida',
+        link: '/guide/'
+      },
+      {
+        text: 'API Reference',
+        link: '/api/'
+      },
+      {
+        text: 'Esempi',
+        link: '/examples/'
+      }
+    ],
+    
+    sidebar: {
+      '/guide/': [
+        {
+          title: 'Guida',
+          collapsable: false,
+          children: [
+            '',
+            'installation',
+            'quickstart',
+            'configuration',
+            'troubleshooting'
+          ]
+        }
+      ],
+      
+      '/api/': [
+        {
+          title: 'API Reference',
+          collapsable: false,
+          children: [
+            '',
+            'TrgenClient',
+            'TrgenConfiguration',
+            'TrgenImplementation',
+            'TrgenPort'
+          ]
+        }
+      ],
+      
+      '/examples/': [
+        {
+          title: 'Esempi',
+          collapsable: false,
+          children: [
+            '',
+            'basic-connection',
+            'configuration-management',
+            'trigger-sequences',
+            'error-handling'
+          ]
+        }
+      ]
+    }
+  },
+  
+  plugins: [
+    '@vuepress/plugin-back-to-top',
+    '@vuepress/plugin-medium-zoom',
+    [
+      '@vuepress/plugin-search',
+      {
+        searchMaxSuggestions: 10
+      }
+    ]
+  ],
+  
+  markdown: {
+    lineNumbers: true,
+    anchor: {
+      permalink: true,
+      permalinkBefore: true,
+      permalinkSymbol: '#'
+    }
+  }
+}
+""")
+
+    def generate_main_readme(self):
+        """Genera README.md principale per VuePress homepage"""
+        readme_file = os.path.join(self.output_dir, "README.md")
+        
+        with open(readme_file, 'w', encoding='utf-8') as f:
+            f.write("""---
+home: true
+heroImage: /hero.png
+heroText: TrGEN Unity
+tagline: Libreria Unity professionale per la comunicazione con dispositivi TriggerBox di CoSANLab
+actionText: Inizia Subito →
+actionLink: /guide/
+features:
+- title: 🎯 Semplice da Usare
+  details: API intuitiva e ben documentata per l'integrazione rapida nei progetti Unity
+- title: ⚡ Prestazioni Elevate
+  details: Comunicazione asincrona ottimizzata per trigger real-time
+- title: 🔧 Configurazione Avanzata
+  details: Sistema completo di configurazione con export/import JSON
+footer: MIT Licensed | Copyright © 2025 CoSANLab
+---
+
+# TrGEN Unity Package
+
+TrGEN Unity è una libreria professionale per Unity che permette la comunicazione
+con i dispositivi **TriggerBox** di CoSANLab, utilizzati in ricerca neuroscientifica
+per la sincronizzazione di trigger con sistemi EEG, TMS e altri dispositivi.
+
+## 🚀 Installazione Rapida
+
+### Via OpenUPM (Raccomandato)
+```bash
+# Installa tramite OpenUPM CLI
+openupm add com.cosanlab.trgen
+```
+
+### Via Package Manager
+1. Apri Unity Package Manager
+2. Clicca "+" → "Add package from git URL"
+3. Inserisci: `https://github.com/stefanolatini/trgen-unity.git`
+
+## 💡 Esempio Veloce
+
+```csharp
+using Trgen;
+using UnityEngine;
+
+public class TriggerExample : MonoBehaviour
+{
+    private TrgenClient client;
+    
+    async void Start()
+    {
+        // Connessione al dispositivo
+        client = new TrgenClient();
+        await client.ConnectAsync("192.168.1.100", 4000);
+        
+        // Invio trigger
+        await client.StartTriggerAsync(TrgenPin.NS0);
+        
+        Debug.Log("Trigger inviato con successo!");
+    }
+}
+```
+
+## 📋 Funzionalità Principali
+
+- **Comunicazione Asincrona**: Connessione TCP non-bloccante
+- **Gestione Configurazioni**: Export/Import JSON completo
+- **Trigger Multipli**: Supporto per pin NeuroScan, Synamps, TMS, GPIO
+- **Programmazione Hardware**: Caricamento automatico delle sequenze
+- **Debug Avanzato**: Logging dettagliato e diagnostica errori
+- **Unity Integration**: Compatibile con Unity 2021.3 LTS+
+
+## 🔗 Link Utili
+
+- [📖 Guida Completa](/guide/)
+- [📚 Documentazione API](/api/)
+- [💻 Repository GitHub](https://github.com/stefanolatini/trgen-unity)
+- [📦 Package OpenUPM](https://openupm.com/packages/com.cosanlab.trgen/)
+- [🧪 Esempi di Codice](/examples/)
+
+## 📞 Supporto
+
+Per supporto tecnico o domande:
+- Apri una [GitHub Issue](https://github.com/stefanolatini/trgen-unity/issues)
+- Contatta: support@cosanlab.org
+
+## 🏆 Stato del Progetto
+
+![Build Status](https://github.com/stefanolatini/trgen-unity/workflows/📚%20Deploy%20VuePress%20Documentation%20to%20GitHub%20Pages/badge.svg)
+![Latest Release](https://img.shields.io/github/v/release/stefanolatini/trgen-unity?label=release)
+![OpenUPM](https://img.shields.io/npm/v/com.cosanlab.trgen?label=openupm&registry_uri=https://package.openupm.com)
+
+---
+
+<div style="text-align: center; margin-top: 2rem;">
+  <strong>🧠 Sviluppato per la ricerca neuroscientifica di livello mondiale</strong>
+</div>
+""")
+
 
 def main():
     """Main entry point"""

@@ -68,17 +68,27 @@ jobs:
         echo "🐍 Running Python documentation generator..."
         python3 generate_legacy_docs.py --source Runtime --output docs-site
         
-        # 2. Copia il banner esistente come hero image per VuePress
+        # 2. Verifica che i file base siano stati generati
+        echo "🔍 Checking generated files..."
+        ls -la docs-site/
+        
+        # 3. Verifica che esista il README.md principale
+        if [ ! -f "docs-site/README.md" ]; then
+          echo "❌ README.md not found in docs-site, VuePress needs it for index.html"
+          exit 1
+        fi
+        
+        # 4. Copia il banner esistente come hero image per VuePress
         echo "🖼️ Setting up hero image..."
         mkdir -p docs-site/.vuepress/public
         cp images/banner.png docs-site/.vuepress/public/hero.png
         
-        # 3. Setup package.json per VuePress
+        # 5. Setup package.json per VuePress
         echo "📦 Setting up VuePress dependencies..."
         cp package-docs.json package.json
         npm install --production=false
         
-        # 4. Build del sito VuePress
+        # 6. Build del sito VuePress
         echo "🏗️ Building VuePress documentation..."
         npm run build
         
@@ -88,6 +98,8 @@ jobs:
         # Verifica che i file siano stati generati
         if [ ! -f "public/index.html" ]; then
           echo "❌ Error: index.html not found in public/"
+          echo "📋 Contents of public directory:"
+          find public -name "*.html" || echo "No HTML files found"
           exit 1
         fi
         
