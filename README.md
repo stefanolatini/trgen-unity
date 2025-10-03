@@ -18,6 +18,15 @@
 ![.NET](https://img.shields.io/badge/.NET-Standard%202.1-512BD4?style=flat&logo=dotnet&logoColor=white)
 ![C#](https://img.shields.io/badge/C%23-9.0-239120?style=flat&logo=c-sharp&logoColor=white)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux-lightgrey?style=flat)
+
+</p>
+
+> **📦 Note for Developers:** 
+> This repository contains TWO package.json files:
+> - `package.json` - Unity/OpenUPM package configuration (DO NOT MODIFY)
+> - `package-docs.json` - VuePress documentation dependencies (for GitHub Pages)
+> 
+> Use `./test-docs-build.sh` to test documentation without affecting Unity package.
 ![License](https://img.shields.io/badge/License-MIT-green?style=flat)
 ![Version](https://img.shields.io/badge/Version-1.0.0-blue?style=flat)
 [![openupm](https://img.shields.io/npm/v/com.cosanlab.trgen?label=openupm&registry_uri=https://package.openupm.com)](https://openupm.com/packages/com.cosanlab.trgen/)

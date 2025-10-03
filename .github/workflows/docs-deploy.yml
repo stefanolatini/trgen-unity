@@ -41,17 +41,23 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: '18'
-        cache: 'npm'
-        cache-dependency-path: 'package-docs.json'
         
-    - name: 🔧 Configure Pages
+    - name: � Cache Dependencies
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('package-docs.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+        
+    - name: �🔧 Configure Pages
       uses: actions/configure-pages@v4
       
     - name: 📚 Install Documentation Dependencies
       run: |
         echo "📦 Installing VuePress and plugins..."
         cp package-docs.json package.json
-        npm ci
+        npm install --production=false
         
     - name: 🏗️ Build VuePress Site
       run: |
