@@ -26,6 +26,10 @@ extensions = [
     'sphinx.ext.viewcode',  # per link al codice sorgente
 ]
 
+# Support Markdown files (MyST)
+# Install with: pip install myst-parser
+extensions.insert(0, 'myst_parser')
+
 templates_path = ['_templates']
 exclude_patterns = []
 
@@ -44,7 +48,9 @@ sphinxsharp_output_dir = '_build/csharp'
 sphinxsharp_exclude_patterns = ['obj/**', 'bin/**', 'Temp/**']
 
 # Auto-generate summaries per C#
-autosummary_generate = True
+# NOTE: autosummary can try to import Python modules (fails for C# projects).
+# Disable automatic generation to avoid import errors like "no module named src".
+autosummary_generate = False
 autosummary_imported_members = True
 
 # -- Options for HTML output -------------------------------------------------

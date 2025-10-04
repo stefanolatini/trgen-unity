@@ -16,6 +16,17 @@ def replace_mermaid(match):
 # Sostituisci i blocchi mermaid
 processed_content = re.sub(mermaid_pattern, replace_mermaid, content, flags=re.DOTALL)
 
+# Aggiungi il toctree in fondo (puoi cambiare posizione se serve)
+toctree_block = """
+.. toctree::
+   :maxdepth: 2
+   :caption: Contents
+
+   api/index
+"""
+
+processed_content += "\n\n" + toctree_block
+
 # Salva il file processato
 with open('README_processed.md', 'w') as f:
     f.write(processed_content)
