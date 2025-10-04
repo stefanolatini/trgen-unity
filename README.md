@@ -573,9 +573,3 @@ Sapienza University of Rome
 - **Neuroscience Researchers** - Use cases and requirements
 
 ---
-
-<div align="center">
-
-**[⭐ Star this repository](https://github.com/stefanolatini/trgen-unity) if it helps your research!**
-
-</div>
