@@ -44,7 +44,7 @@ csharp_auto_link = "basic"
 # SphinxSharp Configuration
 sphinxsharp_project_dir = os.path.abspath('../../')
 sphinxsharp_source_dirs = ['Runtime']
-sphinxsharp_output_dir = '_build/csharp'
+sphinxsharp_output_dir = os.path.abspath('api')
 sphinxsharp_exclude_patterns = ['obj/**', 'bin/**', 'Temp/**']
 
 # Auto-generate summaries per C#
