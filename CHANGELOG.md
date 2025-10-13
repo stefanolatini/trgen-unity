@@ -1,3 +1,13 @@
+
+## 1.0.2 
+
+Features:
+  
+  - TMSO Added to the args list of SendMarker
+  - Added TriggerInputBhaviour into the TrgenExample.cs file
+
+Fixes:
+
 ## 1.0.1 
 
 Features:

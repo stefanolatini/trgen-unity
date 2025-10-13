@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.abspath('../../'))
 project = 'TrGEN Unity'
 copyright = '2025, CoSANLab / Stefano Latini'
 author = 'CoSANLab / Stefano Latini'
-release = '1.0.1'
+release = '1.0.2'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
@@ -43,7 +43,7 @@ csharp_auto_link = "basic"
 
 # SphinxSharp Configuration
 sphinxsharp_project_dir = os.path.abspath('../../')
-sphinxsharp_source_dirs = ['Runtime']
+sphinxsharp_source_dirs = os.path.abspath('../../Runtime')
 sphinxsharp_output_dir = os.path.abspath('api')
 sphinxsharp_exclude_patterns = ['obj/**', 'bin/**', 'Temp/**']
 

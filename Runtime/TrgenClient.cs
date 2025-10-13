@@ -203,11 +203,15 @@ namespace Trgen
 
             var trgenPort = CreateTrgenPort(portId);
             
+            int index = 0;
             // Programma le istruzioni
             for (int i = 0; i < Math.Min(instructions.Length, trgenPort.Memory.Length); i++)
-            {
+            {   
                 trgenPort.SetInstruction(i, instructions[i]);
+                index++;
             }
+            for (int i = index; i < _memoryLength; i++)
+                trgenPort.SetInstruction(i, InstructionEncoder.NotAdmissible());
 
             // Invia la memoria al dispositivo
             SetTrgenMemory(trgenPort);
@@ -545,13 +549,18 @@ namespace Trgen
             SetTrgenMemory(t);
         }
 
-        public void ResetAllTMSO()
+        public void ResetAllTMS()
         {
-            var t = CreateTrgenPort(TrgenPin.TMSO);
-            t.SetInstruction(0, InstructionEncoder.End());
+            var tout = CreateTrgenPort(TrgenPin.TMSO);
+            tout.SetInstruction(0, InstructionEncoder.End());
             for (int i = 1; i < _memoryLength; i++)
-                t.SetInstruction(i, InstructionEncoder.NotAdmissible());
-            SetTrgenMemory(t);
+                tout.SetInstruction(i, InstructionEncoder.NotAdmissible());
+            SetTrgenMemory(tout);
+            var tin = CreateTrgenPort(TrgenPin.TMSI);
+            ti.SetInstruction(0, InstructionEncoder.End());
+            for (int i = 1; i < _memoryLength; i++)
+                ti.SetInstruction(i, InstructionEncoder.NotAdmissible());
+            SetTrgenMemory(ti);
         }
 
         public void ResetAllSA()
@@ -680,11 +689,12 @@ namespace Trgen
         /// <param name="markerSA">Valore marker per Synamps.</param>
         /// <param name="markerGPIO">Valore marker per GPIO.</param>
         /// <param name="LSB">Se true, usa il bit meno significativo come primo pin.</param>
-        public void SendMarker(int? markerNS = null, int? markerSA = null, int? markerGPIO = null, bool LSB = false)
+        public void SendMarker(int? markerNS = null, int? markerSA = null, int? markerGPIO = null, int? markerTMSO = null, bool LSB = false)
         {
             // Se tutti i marker sono null, esci
-            if (markerNS == null && markerSA == null && markerGPIO == null)
+            if (markerNS == null && markerSA == null && markerGPIO == null && markerBNCO == null)
                 return;
+
 
             var neuroscanMap = new int[] {
                 TrgenPin.NS0,
@@ -696,6 +706,10 @@ namespace Trgen
                 TrgenPin.NS6,
                 TrgenPin.NS7
             };
+
+            var TMSOMap = new int[] {
+                TrgenPin.TMSO
+            }
 
             var synampsMap = new int[] {
                 TrgenPin.SA0,
@@ -722,29 +736,52 @@ namespace Trgen
             ResetAllNS();
             ResetAllSA();
             ResetAllGPIO();
-            ResetAllTMSO();
+            ResetAllTMS();
+            
+            if (markerTMSO != null)
+            {   
+                if(markerNS < 0)
+                    UnityEngine.Debug.LogWarning("[TRGEN] Il marker NS non può essere negativo. Valore fornito: " + markerNS.Value);
+                else{
+                    // Gestione speciale per TMSO (singolo pin)
+                    // NOTA: la mappatura TMSO utilizza un solo pin, quindi non è necessario fare il bitmasking.
+                    if(markerTMSO.Value > 1)
+                        UnityEngine.Debug.LogWarning("[TRGEN] Il marker TMSO può essere solo 0 o 1. Valore fornito: " + markerTMSO.Value);  
+                    var tmsx = CreateTrgenPort(TMSOMap[0]);
+                    ProgramDefaultTrigger(tmsx);
+                }
+            }
 
             if (markerNS != null)
             {
-                var maskNS = Convert.ToString(markerNS.Value, 2).PadLeft(8, '0').ToCharArray();
-                if (!LSB) Array.Reverse(maskNS);
-                for (int idx = 0; idx < maskNS.Length; idx++)
-                {
-                    if (maskNS[idx] == '1')
+                if(markerNS < 0)
+                    UnityEngine.Debug.LogWarning("[TRGEN] Il marker NS non può essere negativo. Valore fornito: " + markerNS.Value);
+                else{
+                    var maskNS = Convert.ToString(markerNS.Value, 2).PadLeft(8, '0').ToCharArray();
+                    if (!LSB) Array.Reverse(maskNS);
+                    for (int idx = 0; idx < maskNS.Length; idx++)
                     {
-                        var nsx = CreateTrgenPort(neuroscanMap[idx]);
-                        ProgramDefaultTrigger(nsx);
+                        if (maskNS[idx] == '1')
+                        {
+                            var nsx = CreateTrgenPort(neuroscanMap[idx]);
+                            ProgramDefaultTrigger(nsx);
+                        }
                     }
-                }
+                }    
+                
             }
 
             if (markerSA != null)
             {
-                var maskSA = Convert.ToString(markerSA.Value, 2).PadLeft(8, '0').ToCharArray();
-                if (!LSB) Array.Reverse(maskSA);
-                for (int idx = 0; idx < maskSA.Length; idx++)
+                if(markerSA < 0)
+                    UnityEngine.Debug.LogWarning("[TRGEN] Il marker SA non può essere negativo. Valore fornito: " + markerSA.Value);
+                else
                 {
-                    if (maskSA[idx] == '1')
+                    var maskSA = Convert.ToString(markerSA.Value, 2).PadLeft(8, '0').ToCharArray();
+                    if (!LSB) Array.Reverse(maskSA);
+                    for (int idx = 0; idx < maskSA.Length; idx++)
+                    {
+                        if (maskSA[idx] == '1')
                     {
                         var sax = CreateTrgenPort(synampsMap[idx]);
                         ProgramDefaultTrigger(sax);
@@ -754,14 +791,19 @@ namespace Trgen
 
             if (markerGPIO != null)
             {
-                var maskGPIO = Convert.ToString(markerGPIO.Value, 2).PadLeft(8, '0').ToCharArray();
-                if (!LSB) Array.Reverse(maskGPIO);
-                for (int idx = 0; idx < maskGPIO.Length; idx++)
+                if(markerGPIO < 0)
+                    UnityEngine.Debug.LogWarning("[TRGEN] Il marker GPIO non può essere negativo. Valore fornito: " + markerGPIO.Value);
+                else
                 {
-                    if (maskGPIO[idx] == '1')
+                    var maskGPIO = Convert.ToString(markerGPIO.Value, 2).PadLeft(8, '0').ToCharArray();
+                    if (!LSB) Array.Reverse(maskGPIO);
+                    for (int idx = 0; idx < maskGPIO.Length; idx++)
                     {
-                        var gpx = CreateTrgenPort(gpioMap[idx]);
-                        ProgramDefaultTrigger(gpx);
+                        if (maskGPIO[idx] == '1')
+                        {
+                            var gpx = CreateTrgenPort(gpioMap[idx]);
+                            ProgramDefaultTrigger(gpx);
+                        }
                     }
                 }
             }
@@ -803,7 +845,7 @@ namespace Trgen
             ResetAllNS();
             ResetAllSA();
             ResetAllGPIO();
-            ResetAllTMSO();
+            ResetAllTMS();
 
             // Programma NeuroScan triggers
             if (markerNS != null && markerNS.Value != 0)
@@ -868,7 +910,7 @@ namespace Trgen
         public void StopTrigger()
         {
             Stop();
-            ResetAllTMSO();
+            ResetAllTMS();
             ResetAllSA();
             ResetAllGPIO();
             ResetAllNS();
