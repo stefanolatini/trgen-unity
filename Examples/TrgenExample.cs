@@ -137,14 +137,14 @@ public class TrgenExample : MonoBehaviour
 
   public void TriggerInputBhaviour(){
     var instructions = new uint[]
-        {
-            InstructionEncoder.WaitNE(TrgenPin.TMSI),    // 50µs active
-            InstructionEncoder.ActiveForUs(20),    // 30µs active again
-            InstructionEncoder.UnactiveForUs(20),  // 10µs inactive
-            InstructionEncoder.End()               // End sequence
-        };
-        client.ProgramPortWithInstructions(TrgenPin.TMSO, instructions);
-        Debug.Log("🔧 Complex sequence programmed!");
+    {
+        InstructionEncoder.WaitNE(TrgenPin.TMSI),    // 50µs active
+        InstructionEncoder.ActiveForUs(20),    // 30µs active again
+        InstructionEncoder.UnactiveForUs(20),  // 10µs inactive
+        InstructionEncoder.End()               // End sequence
+    };
+    client.ProgramPortWithInstructions(TrgenPin.TMSO, instructions);
+    Debug.Log("🔧 Complex sequence programmed!");
   }
 
   /// <summary>

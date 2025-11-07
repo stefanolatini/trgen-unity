@@ -17,6 +17,28 @@ namespace Trgen
         private readonly int timeout;
         private TrgenImplementation _impl;
 
+        /// <summary>
+        /// Sequenza di istruzioni predefinita per TMSO con trigger NE (Negative Edge) su TMSI
+        /// </summary>
+        public static uint[] TmsoWaitNeSequence => new uint[]
+        {
+            InstructionEncoder.WaitNE(TrgenPin.TMSI),    // Attende fronte di discesa su TMSI
+            InstructionEncoder.ActiveForUs(20),          // 20µs attivo
+            InstructionEncoder.UnactiveForUs(20),        // 20µs inattivo
+            InstructionEncoder.End()                     // Fine sequenza
+        };
+
+        /// <summary>
+        /// Sequenza di istruzioni predefinita per TMSO con trigger PE (Positive Edge) su TMSI
+        /// </summary>
+        public static uint[] TmsoWaitPeSequence => new uint[]
+        {
+            InstructionEncoder.WaitPE(TrgenPin.TMSI),    // Attende fronte di salita su TMSI
+            InstructionEncoder.ActiveForUs(20),          // 20µs attivo
+            InstructionEncoder.UnactiveForUs(20),        // 20µs inattivo
+            InstructionEncoder.End()                     // Fine sequenza
+        };
+
 
         #region Configuration Export/Import
 
@@ -190,6 +212,49 @@ namespace Trgen
             return portConfig;
         }
 
+
+        public void InputTriggerTMSOBhaviour()
+        {
+            var instructions = new uint[]
+            {
+                InstructionEncoder.WaitPE(TrgenPin.TMSI),    // 50µs active
+                InstructionEncoder.ActiveForUs(20),    // 30µs active again
+                InstructionEncoder.UnactiveForUs(20),  // 10µs inactive
+                InstructionEncoder.End()               // End sequence
+            };
+            client.ProgramPortWithInstructions(TrgenPin.TMSO, instructions);
+            Debug.Log("🔧 Complex sequence programmed!");
+        }
+
+
+        public void InputTriggerTMSOBhaviourNE()
+        {
+            var instructions = new uint[]
+            {
+                InstructionEncoder.WaitNE(TrgenPin.TMSI),    // 50µs active
+                InstructionEncoder.ActiveForUs(20),    // 30µs active again
+                InstructionEncoder.UnactiveForUs(20),  // 10µs inactive
+                InstructionEncoder.End()               // End sequence
+            };
+            client.ProgramPortWithInstructions(TrgenPin.TMSO, instructions);
+            Debug.Log("🔧 Complex sequence programmed!");
+        }
+        
+        public void InputTriggerCustomBehaviour(int inputPortId, int OutputPortId, uint[] instructions)
+        {
+            var instructions = new uint[]
+            {
+                InstructionEncoder.WaitPE(inputPortId),    // 50µs active
+                InstructionEncoder.ActiveForUs(20),    // 30µs active again
+                InstructionEncoder.UnactiveForUs(20),  // 10µs inactive
+                InstructionEncoder.End()               // End sequence
+            };
+            client.ProgramPortWithInstructions(OutputPortId, instructions);
+            Debug.Log("🔧 Custom sequence programmed!");
+        }
+            
+        
+
         /// <summary>
         /// Programma una porta con istruzioni specifiche e aggiorna la configurazione
         /// </summary>
@@ -202,17 +267,19 @@ namespace Trgen
                 throw new ArgumentNullException(nameof(instructions));
 
             var trgenPort = CreateTrgenPort(portId);
-            
+
             int index = 0;
             // Programma le istruzioni
             for (int i = 0; i < Math.Min(instructions.Length, trgenPort.Memory.Length); i++)
-            {   
+            {
                 trgenPort.SetInstruction(i, instructions[i]);
                 index++;
             }
             for (int i = index; i < _memoryLength; i++)
+            {
                 trgenPort.SetInstruction(i, InstructionEncoder.NotAdmissible());
-
+                // Aggiunge l'istruzione di fine programma se c'è spazio
+            }
             // Invia la memoria al dispositivo
             SetTrgenMemory(trgenPort);
 
@@ -557,10 +624,10 @@ namespace Trgen
                 tout.SetInstruction(i, InstructionEncoder.NotAdmissible());
             SetTrgenMemory(tout);
             var tin = CreateTrgenPort(TrgenPin.TMSI);
-            ti.SetInstruction(0, InstructionEncoder.End());
+            tin.SetInstruction(0, InstructionEncoder.End());
             for (int i = 1; i < _memoryLength; i++)
-                ti.SetInstruction(i, InstructionEncoder.NotAdmissible());
-            SetTrgenMemory(ti);
+                tin.SetInstruction(i, InstructionEncoder.NotAdmissible());
+            SetTrgenMemory(tin);
         }
 
         public void ResetAllSA()
@@ -692,7 +759,7 @@ namespace Trgen
         public void SendMarker(int? markerNS = null, int? markerSA = null, int? markerGPIO = null, int? markerTMSO = null, bool LSB = false)
         {
             // Se tutti i marker sono null, esci
-            if (markerNS == null && markerSA == null && markerGPIO == null && markerBNCO == null)
+            if (markerNS == null && markerSA == null && markerGPIO == null && markerTMSO == null)
                 return;
 
 
@@ -709,7 +776,7 @@ namespace Trgen
 
             var TMSOMap = new int[] {
                 TrgenPin.TMSO
-            }
+            };
 
             var synampsMap = new int[] {
                 TrgenPin.SA0,
@@ -782,9 +849,10 @@ namespace Trgen
                     for (int idx = 0; idx < maskSA.Length; idx++)
                     {
                         if (maskSA[idx] == '1')
-                    {
-                        var sax = CreateTrgenPort(synampsMap[idx]);
-                        ProgramDefaultTrigger(sax);
+                        {
+                            var sax = CreateTrgenPort(synampsMap[idx]);
+                            ProgramDefaultTrigger(sax);
+                        }
                     }
                 }
             }
@@ -820,10 +888,10 @@ namespace Trgen
         /// <param name="markerGPIO">Valore marker per GPIO.</param>
         /// <param name="LSB">Se true, usa il bit meno significativo come primo pin.</param>
         /// <param name="stop">Se true, ferma automaticamente i trigger dopo l'invio.</param>
-        public void SendMarker(int? markerNS = null, int? markerSA = null, int? markerGPIO = null, bool LSB = false, bool stop = false)
+        public void SendMarker(int? markerNS = null, int? markerSA = null, int? markerGPIO = null, int? markerTMSO = null, bool LSB = false, bool stop = false)
         {
             // Se tutti i marker sono null, esci
-            if (markerNS == null && markerSA == null && markerGPIO == null)
+            if (markerNS == null && markerSA == null && markerGPIO == null && markerTMSO == null)
                 return;
 
             var neuroscanMap = new int[] {
