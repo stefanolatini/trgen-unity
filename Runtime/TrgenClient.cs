@@ -17,6 +17,17 @@ namespace Trgen
         private readonly int timeout;
         private TrgenImplementation _impl;
 
+        // Costanti per i comandi dei pacchetti
+        private const int CMD_PACKET_PROGRAM = 0x01;
+        private const int CMD_PACKET_START = 0x02;
+        private const int CMD_SET_GPIO = 0x03;
+        private const int CMD_REQ_IMPL = 0x04;
+        private const int CMD_REQ_STATUS = 0x05;
+        private const int CMD_SET_LEVEL = 0x06;
+        private const int CMD_REQ_GPIO = 0x07;
+        private const int CMD_REQ_LEVEL = 0x08;
+        private const int CMD_STOP_TRGEN = 0x09;
+
         /// <summary>
         /// Sequenza di istruzioni predefinita per TMSO con trigger NE (Negative Edge) su TMSI
         /// </summary>
@@ -160,7 +171,7 @@ namespace Trgen
             // Synamps Ports (SA0-SA7) - Con memoria attuale  
             for (int i = 0; i <= 7; i++)
             {
-                var portConfig = CreatePortConfigWithMemory(8 + i, $"Synamps {i}", "SA", $"Synamps trigger port {i}");
+                var portConfig = CreatePortConfigWithMemory(8 + i, $"Synamaps {i}", "SA", $"Synamps trigger port {i}");
                 config.TriggerPorts[$"SA{i}"] = portConfig;
             }
 
@@ -213,11 +224,11 @@ namespace Trgen
         }
 
 
-        public void InputTriggerTMSOBhaviour()
+        public void InputBNCOutput(bool ne = false)
         {
             var instructions = new uint[]
             {
-                InstructionEncoder.WaitPE(TrgenPin.TMSI),    // 50µs active
+                ne ? InstructionEncoder.WaitNE(TrgenPin.TMSI) : InstructionEncoder.WaitPE(TrgenPin.TMSI),    // 50µs active
                 InstructionEncoder.ActiveForUs(20),    // 30µs active again
                 InstructionEncoder.UnactiveForUs(20),  // 10µs inactive
                 InstructionEncoder.End()               // End sequence
@@ -227,11 +238,17 @@ namespace Trgen
         }
 
 
-        public void InputTriggerTMSOBhaviourNE()
+        public void InputGPIOTriggerTMSOBhaviour(bool ne = false, int gpioId)
         {
+            if (!TrgenPin.AllGpio.Contains(gpioId))
+            {
+                UnityEngine.Debug.LogError($"[TRGEN] Invalid input port: {inputPortId}. Only TMSI and GPIO ports are allowed.");
+                return;
+            }
+
             var instructions = new uint[]
             {
-                InstructionEncoder.WaitNE(TrgenPin.TMSI),    // 50µs active
+                ne ? InstructionEncoder.WaitNE(gpioId) : InstructionEncoder.WaitPE(gpioId),    // 50µs active
                 InstructionEncoder.ActiveForUs(20),    // 30µs active again
                 InstructionEncoder.UnactiveForUs(20),  // 10µs inactive
                 InstructionEncoder.End()               // End sequence
@@ -239,17 +256,77 @@ namespace Trgen
             client.ProgramPortWithInstructions(TrgenPin.TMSO, instructions);
             Debug.Log("🔧 Complex sequence programmed!");
         }
-        
-        public void InputTriggerCustomBehaviour(int inputPortId, int OutputPortId, uint[] instructions)
+
+        public void InputTriggerCustomPin(int inputPortId, int outputPortId, uint[] instructions, bool ne = false)
         {
-            var instructions = new uint[]
+            // Validate input port
+            if (inputPortId != TrgenPin.TMSI &&
+                !TrgenPin.AllGpio.Contains(inputPortId))
             {
-                InstructionEncoder.WaitPE(inputPortId),    // 50µs active
-                InstructionEncoder.ActiveForUs(20),    // 30µs active again
-                InstructionEncoder.UnactiveForUs(20),  // 10µs inactive
-                InstructionEncoder.End()               // End sequence
-            };
-            client.ProgramPortWithInstructions(OutputPortId, instructions);
+                UnityEngine.Debug.LogError($"[TRGEN] Invalid input port: {inputPortId}. Only TMSI and GPIO ports are allowed.");
+                return;
+            }
+
+            // Validate output port - cannot be same as input
+            if (OutputPortId == inputPortId)
+            {
+                UnityEngine.Debug.LogError($"[TRGEN] Output port cannot be the same as input port: {inputPortId}");
+                return;
+            }
+
+            // Validate output port - cannot be TMSI or GPIO
+            if (OutputPortId == TrgenPin.TMSI || TrgenPin.AllGpio.Contains(OutputPortId))
+            {
+                UnityEngine.Debug.LogError($"[TRGEN] Invalid output port: {OutputPortId}. TMSI and GPIO ports cannot be used as output.");
+                return;
+            }
+
+            if (instructions == null || instructions.Length == 0)
+            {
+                var defaultInstructions = new uint[]
+                {
+                    ne ? InstructionEncoder.WaitNE(inputPortId) : InstructionEncoder.WaitPE(inputPortId),
+                    InstructionEncoder.ActiveForUs(20),
+                    InstructionEncoder.UnactiveForUs(20),
+                    InstructionEncoder.End()
+                };
+                instructions = defaultInstructions;
+            }
+            else
+            {
+                // Validate instructions compatibility with InstructionEncoder
+                for (int i = 0; i < instructions.Length; i++)
+                {
+                    if (!InstructionEncoder.IsValidInstruction(instructions[i]))
+                    {
+                        UnityEngine.Debug.LogError($"[TRGEN] Invalid instruction at index {i}: 0x{instructions[i]:X8}");
+                        return;
+                    }
+                }
+
+                // Check if sequence ends with End() instruction
+                bool hasEndInstruction = false;
+                for (int i = 0; i < instructions.Length; i++)
+                {
+                    if (InstructionEncoder.IsEndInstruction(instructions[i]))
+                    {
+                        hasEndInstruction = true;
+                        break;
+                    }
+                }
+
+                if (!hasEndInstruction)
+                {
+                    UnityEngine.Debug.LogWarning("[TRGEN] Instructions array does not contain End() instruction. Adding it automatically.");
+                    var extendedInstructions = new uint[instructions.Length + 1];
+                    Array.Copy(instructions, extendedInstructions, instructions.Length);
+                    extendedInstructions[instructions.Length] = InstructionEncoder.End();
+                    instructions = extendedInstructions;
+                }
+            }
+            
+            
+            ProgramPortWithInstructions(OutputPortId, instructions);
             Debug.Log("🔧 Custom sequence programmed!");
         }
             
@@ -587,25 +664,37 @@ namespace Trgen
         }*/
 
         // Commands
-        public void Start() => SendPacket(0x02);
-        public void Stop() => SendPacket(0x09);
-        public void SetLevel(uint mask) => SendPacket(0x06, new uint[] { mask });
-        public void SetGpio(uint mask) => SendPacket(0x03, new uint[] { mask });
-        public int GetLevel() => ParseAckValue(SendPacket(0x08), 0x08);
-        public int GetStatus() => ParseAckValue(SendPacket(0x05), 0x05);
-        public int GetGpio() => ParseAckValue(SendPacket(0x07), 0x07);
+        public void Start() => SendPacket(CMD_PACKET_START);
+        public void Stop() => SendPacket(CMD_STOP_TRGEN);
+
+        /// <summary>
+        /// Imposta il livello delle porte di output tramite maschera di bit.
+        /// </summary>
+        /// <param name="mask">Maschera di bit per impostare lo stato delle porte (1=attivo, 0=inattivo).</param>
+        public void SetLevel(uint mask) => SendPacket(CMD_SET_LEVEL, new uint[] { mask });
+
+        public void SetGpio(uint mask) => SendPacket(CMD_SET_GPIO, new uint[] { mask });
+
+        /// <summary>
+        /// Richiede il livello attuale delle porte di output.
+        /// </summary>
+        /// <returns>Valore intero rappresentante lo stato corrente delle porte come maschera di bit.</returns>
+        public int GetLevel() => ParseAckValue(SendPacket(CMD_REQ_LEVEL), CMD_REQ_LEVEL);
+
+        public int GetStatus() => ParseAckValue(SendPacket(CMD_REQ_STATUS), CMD_REQ_STATUS);
+        public int GetGpio() => ParseAckValue(SendPacket(CMD_REQ_GPIO), CMD_REQ_GPIO);
 
         public void SetTrgenMemory(TrgenPort t)
         {
             int id = t.Id;
-            int packetId = 0x01 | (id << 24);
+            int packetId = CMD_PACKET_PROGRAM | (id << 24);
             SendPacket(packetId, t.Memory);
         }
 
         public int RequestImplementation()
         {
-            var ack = SendPacket(0x04);
-            return ParseAckValue(ack, 0x04);
+            var ack = SendPacket(CMD_REQ_IMPL);
+            return ParseAckValue(ack, CMD_REQ_IMPL);
         }
 
         public void ResetTrigger(TrgenPort t)
