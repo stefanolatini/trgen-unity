@@ -1,14 +1,9 @@
 <h1 align="center">TrGEN-Unity</h1>
 
-<!-- GitHub Actions workflow trigger: 2025-10-02 -->
 
-<!-- 
+
 <p align="center">
   <img src="images/banner.png" alt="TriggerBox Banner" width="600px" height="300px">
-
-</p>
- -->
-
 
 ![Unity](https://img.shields.io/badge/Unity-2021.3%2B-000000?style=flat&logo=unity&logoColor=white)
 ![.NET](https://img.shields.io/badge/.NET-Standard%202.1-512BD4?style=flat&logo=dotnet&logoColor=white)
@@ -153,6 +148,44 @@ public class TriggerController : MonoBehaviour
     }
 }
 ```
+
+### Trigger Input-Output
+
+Configura trigger che rispondono automaticamente a segnali di input:
+
+```csharp
+// TMSO risponde ai segnali su TMSI (fronte positivo)
+client.InputBNCOutput(false);
+
+// TMSO risponde ai segnali su TMSI (fronte negativo) 
+client.InputBNCOutput(true);
+
+// TMSO risponde ai segnali su GPIO0 (fronte positivo)
+client.InputGPIOTriggerTMSOBehaviour(false, TrgenPin.GPIO0);
+
+// Configurazione personalizzata: SA0 risponde a GPIO1
+client.InputTriggerCustomPin(
+    inputPortId: TrgenPin.GPIO1,
+    outputPortId: TrgenPin.SA0,
+    ne: false
+);
+
+// Con istruzioni personalizzate
+uint[] customSequence = {
+    InstructionEncoder.WaitPE(TrgenPin.TMSI),
+    InstructionEncoder.ActiveForUs(50),   // 50µs attivo
+    InstructionEncoder.UnactiveForUs(10), // 10µs inattivo
+    InstructionEncoder.ActiveForUs(30),   // 30µs attivo di nuovo
+    InstructionEncoder.End()
+};
+
+client.InputTriggerCustomPin(
+    inputPortId: TrgenPin.TMSI,
+    outputPortId: TrgenPin.NS0,
+    instructions: customSequence
+);
+```
+
 
 ### Send Simple Triggers
 
@@ -573,3 +606,8 @@ Sapienza University of Rome
 - **Neuroscience Researchers** - Use cases and requirements
 
 ---
+
+- **📧 Email**: 
+  - federico.rossano@iit.it
+  - stefanoelatini@hotmail.it
+

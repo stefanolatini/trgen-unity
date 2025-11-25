@@ -224,112 +224,115 @@ namespace Trgen
         }
 
 
+        /// <summary>
+        /// Configura TMSO per rispondere ai segnali di input su TMSI
+        /// </summary>
+        /// <param name="ne">Se true, attende fronte negativo; se false, fronte positivo</param>
         public void InputBNCOutput(bool ne = false)
         {
             var instructions = new uint[]
             {
-                ne ? InstructionEncoder.WaitNE(TrgenPin.TMSI) : InstructionEncoder.WaitPE(TrgenPin.TMSI),    // 50µs active
-                InstructionEncoder.ActiveForUs(20),    // 30µs active again
-                InstructionEncoder.UnactiveForUs(20),  // 10µs inactive
-                InstructionEncoder.End()               // End sequence
+                ne ? InstructionEncoder.WaitNE(TrgenPin.TMSI) : InstructionEncoder.WaitPE(TrgenPin.TMSI),
+                InstructionEncoder.ActiveForUs(20),
+                InstructionEncoder.UnactiveForUs(20),
+                InstructionEncoder.End()
             };
-            client.ProgramPortWithInstructions(TrgenPin.TMSO, instructions);
-            Debug.Log("🔧 Complex sequence programmed!");
+            ProgramPortWithInstructions(TrgenPin.TMSO, instructions);
+            Log(LogLevel.Info, "🔧 TMSO configurato per rispondere a TMSI");
         }
 
 
-        public void InputGPIOTriggerTMSOBhaviour(bool ne = false, int gpioId)
+        /// <summary>
+        /// Configura TMSO per rispondere ai segnali di input su un pin GPIO specifico
+        /// </summary>
+        /// <param name="ne">Se true, attende fronte negativo; se false, fronte positivo</param>
+        /// <param name="gpioId">ID del pin GPIO da utilizzare come input</param>
+        public void InputGPIOTriggerTMSOBehaviour(bool ne = false, int gpioId = TrgenPin.GPIO0)
         {
             if (!TrgenPin.AllGpio.Contains(gpioId))
             {
-                UnityEngine.Debug.LogError($"[TRGEN] Invalid input port: {inputPortId}. Only TMSI and GPIO ports are allowed.");
+                Log(LogLevel.Error, $"Pin GPIO non valido: {gpioId}. Utilizzare TrgenPin.GPIO0-GPIO7");
                 return;
             }
 
             var instructions = new uint[]
             {
-                ne ? InstructionEncoder.WaitNE(gpioId) : InstructionEncoder.WaitPE(gpioId),    // 50µs active
-                InstructionEncoder.ActiveForUs(20),    // 30µs active again
-                InstructionEncoder.UnactiveForUs(20),  // 10µs inactive
-                InstructionEncoder.End()               // End sequence
+                ne ? InstructionEncoder.WaitNE(gpioId) : InstructionEncoder.WaitPE(gpioId),
+                InstructionEncoder.ActiveForUs(20),
+                InstructionEncoder.UnactiveForUs(20),
+                InstructionEncoder.End()
             };
-            client.ProgramPortWithInstructions(TrgenPin.TMSO, instructions);
-            Debug.Log("🔧 Complex sequence programmed!");
+            ProgramPortWithInstructions(TrgenPin.TMSO, instructions);
+            Log(LogLevel.Info, $"🔧 TMSO configurato per rispondere a GPIO{gpioId - TrgenPin.GPIO0}");
         }
 
-        public void InputTriggerCustomPin(int inputPortId, int outputPortId, uint[] instructions, bool ne = false)
+        /// <summary>
+        /// Configura un pin di output personalizzato per rispondere a un pin di input specifico
+        /// </summary>
+        /// <param name="inputPortId">ID del pin di input (TMSI o GPIO)</param>
+        /// <param name="outputPortId">ID del pin di output</param>
+        /// <param name="instructions">Istruzioni personalizzate (opzionale)</param>
+        /// <param name="ne">Se true, attende fronte negativo; se false, fronte positivo</param>
+        public void InputTriggerCustomPin(int inputPortId, int outputPortId, uint[] instructions = null, bool ne = false)
         {
-            // Validate input port
-            if (inputPortId != TrgenPin.TMSI &&
-                !TrgenPin.AllGpio.Contains(inputPortId))
+            // Validazione pin di input
+            if (inputPortId != TrgenPin.TMSI && !TrgenPin.AllGpio.Contains(inputPortId))
             {
-                UnityEngine.Debug.LogError($"[TRGEN] Invalid input port: {inputPortId}. Only TMSI and GPIO ports are allowed.");
+                Log(LogLevel.Error, $"Pin di input non valido: {inputPortId}. Solo TMSI e GPIO sono supportati");
                 return;
             }
 
-            // Validate output port - cannot be same as input
-            if (OutputPortId == inputPortId)
+            // Validazione pin di output
+            if (outputPortId == inputPortId)
             {
-                UnityEngine.Debug.LogError($"[TRGEN] Output port cannot be the same as input port: {inputPortId}");
+                Log(LogLevel.Error, "Il pin di output non può essere uguale al pin di input");
                 return;
             }
 
-            // Validate output port - cannot be TMSI or GPIO
-            if (OutputPortId == TrgenPin.TMSI || TrgenPin.AllGpio.Contains(OutputPortId))
+            if (outputPortId == TrgenPin.TMSI || TrgenPin.AllGpio.Contains(outputPortId))
             {
-                UnityEngine.Debug.LogError($"[TRGEN] Invalid output port: {OutputPortId}. TMSI and GPIO ports cannot be used as output.");
+                Log(LogLevel.Error, $"Pin di output non valido: {outputPortId}. TMSI e GPIO non possono essere usati come output");
                 return;
             }
 
+            // Usa istruzioni di default se non fornite
             if (instructions == null || instructions.Length == 0)
             {
-                var defaultInstructions = new uint[]
+                instructions = new uint[]
                 {
                     ne ? InstructionEncoder.WaitNE(inputPortId) : InstructionEncoder.WaitPE(inputPortId),
                     InstructionEncoder.ActiveForUs(20),
                     InstructionEncoder.UnactiveForUs(20),
                     InstructionEncoder.End()
                 };
-                instructions = defaultInstructions;
             }
             else
             {
-                // Validate instructions compatibility with InstructionEncoder
-                for (int i = 0; i < instructions.Length; i++)
-                {
-                    if (!InstructionEncoder.IsValidInstruction(instructions[i]))
-                    {
-                        UnityEngine.Debug.LogError($"[TRGEN] Invalid instruction at index {i}: 0x{instructions[i]:X8}");
-                        return;
-                    }
-                }
+                // Validazione istruzioni personalizzate
+                ValidateInstructions(instructions);
+            }
 
-                // Check if sequence ends with End() instruction
-                bool hasEndInstruction = false;
-                for (int i = 0; i < instructions.Length; i++)
-                {
-                    if (InstructionEncoder.IsEndInstruction(instructions[i]))
-                    {
-                        hasEndInstruction = true;
-                        break;
-                    }
-                }
+            ProgramPortWithInstructions(outputPortId, instructions);
+            Log(LogLevel.Info, $"🔧 Pin {outputPortId} configurato per rispondere al pin {inputPortId}");
+        }
 
-                if (!hasEndInstruction)
+        private void ValidateInstructions(uint[] instructions)
+        {
+            for (int i = 0; i < instructions.Length; i++)
+            {
+                if (!InstructionEncoder.IsValidInstruction(instructions[i]))
                 {
-                    UnityEngine.Debug.LogWarning("[TRGEN] Instructions array does not contain End() instruction. Adding it automatically.");
-                    var extendedInstructions = new uint[instructions.Length + 1];
-                    Array.Copy(instructions, extendedInstructions, instructions.Length);
-                    extendedInstructions[instructions.Length] = InstructionEncoder.End();
-                    instructions = extendedInstructions;
+                    throw new ArgumentException($"Istruzione non valida all'indice {i}: 0x{instructions[i]:X8}");
                 }
             }
-            
-            
-            ProgramPortWithInstructions(OutputPortId, instructions);
-            Debug.Log("🔧 Custom sequence programmed!");
+
+            // Verifica presenza istruzione End()
+            bool hasEndInstruction = Array.Exists(instructions, InstructionEncoder.IsEndInstruction);
+            if (!hasEndInstruction)
+            {
+                Log(LogLevel.Warn, "Aggiunta automatica dell'istruzione End() alla sequenza");
+            }
         }
-            
         
 
         /// <summary>
@@ -1072,6 +1075,298 @@ namespace Trgen
             ResetAllGPIO();
             ResetAllNS();
         }
+
+        /// <summary>
+        /// Invia un trigger personalizzato basato su un segnale di input.
+        /// </summary>
+        /// <param name="ne">Se True, attende fronte negativo; se False, fronte positivo</param>
+        /// <param name="trgenPinList">Lista di pin TrgenPin da triggerare. Se null, usa BNCO</param>
+        /// <param name="inputPin">ID del pin di input (BNCI o GPIO)</param>
+        /// <param name="customInstructions">Lista di istruzioni personalizzate (opzionale)</param>
+        public void CallbackCustomTrigger(bool ne = false, List<int> trgenPinList = null, int? inputPin = null, uint[] customInstructions = null)
+        {
+            // Validazione pin di input
+            if (!inputPin.HasValue)
+            {
+                if (Verbosity >= LogLevel.Error)
+                    Debug.LogError("❌ Pin di input non specificato");
+                return;
+            }
+
+            // Validazione lista trigger
+            if (trgenPinList != null)
+            {
+                if (trgenPinList.Count == 0)
+                {
+                    if (Verbosity >= LogLevel.Error)
+                        Debug.LogError("❌ La lista dei trigger non può essere vuota");
+                    return;
+                }
+
+                // Verifica che BNCI non sia nella lista (è solo input)
+                if (trgenPinList.Contains(TrgenPin.BNCI))
+                {
+                    if (Verbosity >= LogLevel.Error)
+                        Debug.LogError("❌ BNCI è solo input e non può essere usato nella lista trigger");
+                    return;
+                }
+
+                // Verifica conflitto GPIO input/output
+                var validGpio = new HashSet<int> { 
+                    TrgenPin.GPIO0, TrgenPin.GPIO1, TrgenPin.GPIO2, TrgenPin.GPIO3,
+                    TrgenPin.GPIO4, TrgenPin.GPIO5, TrgenPin.GPIO6, TrgenPin.GPIO7
+                };
+
+                if (validGpio.Contains(inputPin.Value) && trgenPinList.Contains(inputPin.Value))
+                {
+                    if (Verbosity >= LogLevel.Error)
+                        Debug.LogError("❌ GPIO non può essere usato contemporaneamente come input e output");
+                    return;
+                }
+            }
+
+            // Configurazione GPIO se necessario
+            if (IsGpioPin(inputPin.Value))
+            {
+                ConfigureGpioAsInput(inputPin.Value);
+            }
+
+            if (trgenPinList == null)
+            {
+                // Usa BNCO come default
+                var bnco = CreateTrgenPort(TrgenPin.BNCO);
+                ConfigureTriggerPort(bnco, inputPin.Value, ne, customInstructions);
+                WriteTrgenMemory(bnco);
+            }
+            else
+            {
+                // Configura ogni pin della lista
+                foreach (var triggerPin in trgenPinList)
+                {
+                    var trigger = CreateTrgenPort(triggerPin);
+                    ProgramDefaultTrigger(trigger);
+                    ConfigureTriggerPort(trigger, inputPin.Value, ne, customInstructions);
+                    WriteTrgenMemory(trigger);
+                }
+            }
+
+            if (Verbosity >= LogLevel.Info)
+                Debug.Log($"✅ Callback trigger configurato per input pin {inputPin}");
+        }
+
+        /// <summary>
+        /// Callback per marker su connettori NS, SA e/o GPIO basato su trigger di input.
+        /// </summary>
+        /// <param name="markerNS">Marker per NeuroScan (0-255)</param>
+        /// <param name="markerSA">Marker per Synamps (0-255)</param>
+        /// <param name="markerGPIO">Marker per GPIO (0-255)</param>
+        /// <param name="inputPin">ID del pin di input (BNCI o GPIO)</param>
+        /// <param name="lsb">Se True, usa il bit meno significativo per primo</param>
+        /// <param name="ne">Se True, attende fronte negativo; se False, fronte positivo</param>
+        public void CallbackMarker(int markerNS = 0, int markerSA = 0, int markerGPIO = 0, int? inputPin = null, bool lsb = false, bool ne = false)
+        {
+            // Validazione pin di input
+            if (!inputPin.HasValue)
+            {
+                if (Verbosity >= LogLevel.Error)
+                    Debug.LogError("❌ Pin di input non specificato");
+                return;
+            }
+
+            var validGpio = new HashSet<int> { 
+                TrgenPin.GPIO0, TrgenPin.GPIO1, TrgenPin.GPIO2, TrgenPin.GPIO3,
+                TrgenPin.GPIO4, TrgenPin.GPIO5, TrgenPin.GPIO6, TrgenPin.GPIO7
+            };
+
+            // Validazione conflitto GPIO
+            if (IsGpioPin(inputPin.Value) && markerGPIO != 0)
+            {
+                if (Verbosity >= LogLevel.Error)
+                    Debug.LogError("❌ GPIO non può essere usato contemporaneamente come input e output");
+                return;
+            }
+
+            // Validazione pin di input supportati
+            if (inputPin.Value != TrgenPin.BNCI && !validGpio.Contains(inputPin.Value))
+            {
+                if (Verbosity >= LogLevel.Error)
+                    Debug.LogError($"❌ Pin di input non valido: {inputPin}. Solo BNCI e GPIO sono supportati");
+                return;
+            }
+
+            // Verifica che almeno un marker sia specificato
+            if (markerNS == 0 && markerSA == 0 && markerGPIO == 0)
+            {
+                if (Verbosity >= LogLevel.Warn)
+                    Debug.LogWarning("⚠️ Nessun marker specificato");
+                return;
+            }
+
+            // Configurazione GPIO se necessario
+            if (IsGpioPin(inputPin.Value))
+            {
+                ConfigureGpioAsInput(inputPin.Value);
+            }
+
+            // Pin mappings
+            var neuroscanMap = new int[] { 
+                TrgenPin.NS0, TrgenPin.NS1, TrgenPin.NS2, TrgenPin.NS3,
+                TrgenPin.NS4, TrgenPin.NS5, TrgenPin.NS6, TrgenPin.NS7
+            };
+
+            var synampsMap = new int[] { 
+                TrgenPin.SA0, TrgenPin.SA1, TrgenPin.SA2, TrgenPin.SA3,
+                TrgenPin.SA4, TrgenPin.SA5, TrgenPin.SA6, TrgenPin.SA7
+            };
+
+            var gpioMap = new int[] { 
+                TrgenPin.GPIO0, TrgenPin.GPIO1, TrgenPin.GPIO2, TrgenPin.GPIO3,
+                TrgenPin.GPIO4, TrgenPin.GPIO5, TrgenPin.GPIO6, TrgenPin.GPIO7
+            };
+
+            // Reset di tutti i port
+            ResetAllTrgenPorts();
+
+            // Converti marker in bitmask
+            var maskNS = ConvertToBitmask(markerNS, lsb);
+            var maskSA = ConvertToBitmask(markerSA, lsb);
+            var maskGPIO = ConvertToBitmask(markerGPIO, lsb);
+
+            // Configura NeuroScan markers
+            ConfigureMarkersForPorts(maskNS, neuroscanMap, inputPin.Value, ne, "NS");
+            
+            // Configura Synamps markers
+            ConfigureMarkersForPorts(maskSA, synampsMap, inputPin.Value, ne, "SA");
+            
+            // Configura GPIO markers
+            ConfigureMarkersForPorts(maskGPIO, gpioMap, inputPin.Value, ne, "GPIO");
+
+            if (Verbosity >= LogLevel.Info)
+                Debug.Log($"✅ Callback markers configurati per input pin {inputPin}");
+        }
+
+        // Helper methods
+
+        private void ConfigureTriggerPort(TrgenPort port, int inputPin, bool ne, uint[] customInstructions)
+        {
+            // Configura istruzione di attesa
+            if (ne)
+                port.SetInstruction(0, InstructionEncoder.WaitNE(inputPin));
+            else
+                port.SetInstruction(0, InstructionEncoder.WaitPE(inputPin));
+
+            if (customInstructions == null || customInstructions.Length == 0)
+            {
+                // Istruzioni default
+                port.SetInstruction(1, InstructionEncoder.ActiveForUs(20));
+                port.SetInstruction(2, InstructionEncoder.UnactiveForUs(20));
+                port.SetInstruction(3, InstructionEncoder.End());
+                
+                // Riempi il resto con istruzioni non ammissibili
+                for (int i = 4; i < MEMORY_LENGTH; i++)
+                {
+                    port.SetInstruction(i, InstructionEncoder.NotAdmissible());
+                }
+            }
+            else
+            {
+                // Usa istruzioni personalizzate
+                for (int i = 0; i < customInstructions.Length && i + 1 < MEMORY_LENGTH; i++)
+                {
+                    port.SetInstruction(i + 1, customInstructions[i]);
+                }
+                
+                // Riempi il resto se necessario
+                for (int i = customInstructions.Length + 1; i < MEMORY_LENGTH; i++)
+                {
+                    port.SetInstruction(i, InstructionEncoder.NotAdmissible());
+                }
+            }
+        }
+
+        private bool[] ConvertToBitmask(int marker, bool lsb)
+        {
+            var binaryStr = Convert.ToString(marker, 2).PadLeft(8, '0');
+            var mask = new bool[8];
+            
+            for (int i = 0; i < 8; i++)
+            {
+                mask[i] = binaryStr[i] == '1';
+            }
+            
+            if (lsb)
+            {
+                Array.Reverse(mask);
+            }
+            
+            return mask;
+        }
+
+        private void ConfigureMarkersForPorts(bool[] mask, int[] portMap, int inputPin, bool ne, string portType)
+        {
+            for (int idx = 0; idx < mask.Length; idx++)
+            {
+                if (mask[idx])
+                {
+                    var port = CreateTrgenPort(portMap[idx]);
+                    
+                    // Configura istruzione di attesa
+                    if (ne)
+                        port.SetInstruction(0, InstructionEncoder.WaitNE(inputPin));
+                    else
+                        port.SetInstruction(0, InstructionEncoder.WaitPE(inputPin));
+                    
+                    // Istruzioni standard per marker
+                    port.SetInstruction(1, InstructionEncoder.ActiveForUs(20));
+                    port.SetInstruction(2, InstructionEncoder.UnactiveForUs(20));
+                    port.SetInstruction(3, InstructionEncoder.End());
+                    
+                    // Riempi il resto con istruzioni non ammissibili
+                    for (int i = 4; i < MEMORY_LENGTH; i++)
+                    {
+                        port.SetInstruction(i, InstructionEncoder.NotAdmissible());
+                    }
+                    
+                    // Programma il trigger
+                    WriteTrgenMemory(port);
+                    
+                    if (Verbosity >= LogLevel.Debug)
+                        Debug.Log($"🔧 Configurato {portType}{idx} per marker callback");
+                }
+            }
+        }
+
+        private bool IsGpioPin(int pin)
+        {
+            return pin >= TrgenPin.GPIO0 && pin <= TrgenPin.GPIO7;
+        }
+
+        private void ConfigureGpioAsInput(int gpioPin)
+        {
+            // Implementa la configurazione GPIO come input
+            // Questa implementazione dipende dal protocollo hardware specifico
+            if (Verbosity >= LogLevel.Debug)
+                Debug.Log($"🔧 Configurato GPIO{gpioPin - TrgenPin.GPIO0} come input");
+        }
+
+        private void ResetAllTrgenPorts()
+        {
+            // Reset di tutti i port disponibili
+            ResetAll(TrgenPin.AllNs);
+            ResetAll(TrgenPin.AllSa);
+            ResetAll(TrgenPin.AllGpio);
+            
+            if (Verbosity >= LogLevel.Debug)
+                Debug.Log("🔄 Reset di tutti i TrgenPorts completato");
+        }
+        private void WriteTrgenMemory(TrgenPort port)
+        {
+            SetTrgenMemory(port);
+            if (Verbosity >= LogLevel.Debug)
+                Debug.Log($"💾 Memoria TrgenPort ID {port.Id} scritta");
+        }
+
+
     }
 
     // duplicate types (Trigger / TrgenImplementation) removed — project contains canonical implementations in other files
