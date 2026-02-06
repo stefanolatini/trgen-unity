@@ -14,7 +14,7 @@ namespace Trgen
     /// <list type="bullet">
     /// <item><description><strong>NeuroScan (NS0-NS7):</strong> Pin per amplificatori NeuroScan, IDs 0-7</description></item>
     /// <item><description><strong>Synamps (SA0-SA7):</strong> Pin per amplificatori Synamps, IDs 8-15</description></item>
-    /// <item><description><strong>TMS (TMSO, TMSI):</strong> Pin per stimolazione magnetica transcranica, IDs 16-17</description></item>
+    /// <item><description><strong>TMS (BNCO, BNCI):</strong> Pin per stimolazione magnetica transcranica, IDs 16-17</description></item>
     /// <item><description><strong>GPIO (GPIO0-GPIO7):</strong> Pin GPIO generici, IDs 18-25</description></item>
     /// </list>
     /// 
@@ -82,9 +82,9 @@ namespace Trgen
 
         // ===== Pin TMS =====
         /// <summary>Pin TMS Output (ID: 16)</summary>
-        public const int TMSO = 16;
+        public const int BNCO = 16;
         /// <summary>Pin TMS Input (ID: 17)</summary>
-        public const int TMSI = 17;
+        public const int BNCI = 17;
 
         // ===== Pin GPIO (GPIO0-GPIO7) =====
         /// <summary>Pin GPIO 0 (ID: 18)</summary>
@@ -147,7 +147,7 @@ namespace Trgen
         public static readonly List<int> AllGpio = new() { GPIO0, GPIO1, GPIO2, GPIO3, GPIO4, GPIO5, GPIO6, GPIO7 };
 
         /// <summary>
-        /// Lista contenente tutti gli identificatori dei pin TMS (TMSO, TMSI).
+        /// Lista contenente tutti gli identificatori dei pin TMS (BNCO, BNCI).
         /// Utile per operazioni batch sui pin di stimolazione magnetica transcranica.
         /// </summary>
         /// <example>
@@ -156,6 +156,6 @@ namespace Trgen
         /// client.ResetAll(TrgenPin.AllTMS);
         /// </code>
         /// </example>
-        public static readonly List<int> AllTMS = new() { TMSO, TMSI };
+        public static readonly List<int> AllTMS = new() { BNCO, BNCI };
     }
 }

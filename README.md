@@ -149,43 +149,6 @@ public class TriggerController : MonoBehaviour
 }
 ```
 
-### Trigger Input-Output
-
-Configura trigger che rispondono automaticamente a segnali di input:
-
-```csharp
-// TMSO risponde ai segnali su TMSI (fronte positivo)
-client.InputBNCOutput(false);
-
-// TMSO risponde ai segnali su TMSI (fronte negativo) 
-client.InputBNCOutput(true);
-
-// TMSO risponde ai segnali su GPIO0 (fronte positivo)
-client.InputGPIOTriggerTMSOBehaviour(false, TrgenPin.GPIO0);
-
-// Configurazione personalizzata: SA0 risponde a GPIO1
-client.InputTriggerCustomPin(
-    inputPortId: TrgenPin.GPIO1,
-    outputPortId: TrgenPin.SA0,
-    ne: false
-);
-
-// Con istruzioni personalizzate
-uint[] customSequence = {
-    InstructionEncoder.WaitPE(TrgenPin.TMSI),
-    InstructionEncoder.ActiveForUs(50),   // 50µs attivo
-    InstructionEncoder.UnactiveForUs(10), // 10µs inattivo
-    InstructionEncoder.ActiveForUs(30),   // 30µs attivo di nuovo
-    InstructionEncoder.End()
-};
-
-client.InputTriggerCustomPin(
-    inputPortId: TrgenPin.TMSI,
-    outputPortId: TrgenPin.NS0,
-    instructions: customSequence
-);
-```
-
 
 ### Send Simple Triggers
 
@@ -245,6 +208,54 @@ public class AdvancedTriggerSetup : MonoBehaviour
 }
 ```
 
+### Event Listening
+
+```csharp
+public class EventListenintSetup : MonoBehaviour
+{
+    private TrgenClient client;
+    
+    void Start()
+    {
+        client = new TrgenClient();
+        client.Connect();
+        
+        
+        // Program complex trigger sequence
+        SetEventListening();
+    }
+    
+    void SetEventListening()
+    {
+        // Configure callback trigger waiting for positive edge on BNCI
+        client.CallbackCustomTrigger(
+            ne: false,                           // Wait for positive edge
+            trgenPinList: new List<int> { TrgenPin.NS0, TrgenPin.SA1 },
+            inputPin: TrgenPin.BNCI,            // Input from BNCI
+            customInstructions: new uint[]       // Custom timing sequence
+            {
+                InstructionEncoder.ActiveForUs(50),     // 50µs active
+                InstructionEncoder.UnactiveForUs(10),   // 10µs inactive  
+                InstructionEncoder.ActiveForUs(30),     // 30µs active again
+                InstructionEncoder.End()                // End sequence
+            }
+        );
+
+        // Synchronize EEG, EMG, and custom GPIO devices
+        client.CallbackMarker(
+            markerNS: 15,               // Binary: 00001111 -> NS0-NS3
+            markerSA: 3,                // Binary: 00000011 -> SA0-SA1
+            markerGPIO: 128,            // Binary: 10000000 -> GPIO7
+            inputPin: TrgenPin.BNCI,
+            lsb: false,                 // MSB first (default)
+            ne: false                   // Positive edge
+        );
+        
+        Debug.Log("🔄 Multi-system markers configured");
+    }
+}
+```
+
 ## 📚 Core Components
 
 ### TrgenClient
@@ -273,7 +284,7 @@ TrgenPin.NS0, TrgenPin.NS1, ..., TrgenPin.NS7
 TrgenPin.SA0, TrgenPin.SA1, ..., TrgenPin.SA7
 
 // TMS pins
-TrgenPin.TMSO, TrgenPin.TMSI
+TrgenPin.BNCO, TrgenPin.BNCI
 
 // GPIO pins (GPIO0-GPIO7)
 TrgenPin.GPIO0, TrgenPin.GPIO1, ..., TrgenPin.GPIO7
@@ -440,7 +451,7 @@ public static class TriggerTemplates
 |-----------|-------|-----|-------------|
 | **NeuroScan** | NS0-NS7 | 0-7 | EEG amplifier triggers |
 | **Synamps** | SA0-SA7 | 8-15 | Synamps amplifier triggers |
-| **TMS** | TMSO, TMSI | 16-17 | Transcranial magnetic stimulation |
+| **TMS** | BNCO, BNCI | 16-17 | Transcranial magnetic stimulation |
 | **GPIO** | GPIO0-GPIO7 | 18-25 | General purpose I/O |
 
 ## ⚙️ Configuration File Format

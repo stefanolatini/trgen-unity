@@ -15,7 +15,7 @@ namespace Trgen
     /// <list type="bullet">
     /// <item><description><strong>Pin NeuroScan:</strong> Connettori per amplificatori NeuroScan (tipicamente 0-8)</description></item>
     /// <item><description><strong>Pin Synamps:</strong> Connettori per amplificatori Synamps (tipicamente 0-8)</description></item>
-    /// <item><description><strong>Pin TMS:</strong> Connettori per stimolazione magnetica transcranica (TMSO/TMSI)</description></item>
+    /// <item><description><strong>Pin TMS:</strong> Connettori per stimolazione magnetica transcranica (BNCO/BNCI)</description></item>
     /// <item><description><strong>Pin GPIO:</strong> Pin GPIO generici programmabili (tipicamente 0-8)</description></item>
     /// <item><description><strong>Memoria Trigger:</strong> Dimensione della memoria programmabile (tipicamente 32-64 istruzioni)</description></item>
     /// </list>
@@ -61,8 +61,8 @@ namespace Trgen
         /// <list type="bullet">
         /// <item><description>Bit 0-4 (5 bit): Numero di pin NeuroScan (0-31)</description></item>
         /// <item><description>Bit 5-9 (5 bit): Numero di pin Synamps (0-31)</description></item>
-        /// <item><description>Bit 10-12 (3 bit): Numero di pin TMSO (0-7)</description></item>
-        /// <item><description>Bit 13-15 (3 bit): Numero di pin TMSI (0-7)</description></item>
+        /// <item><description>Bit 10-12 (3 bit): Numero di pin BNCO (0-7)</description></item>
+        /// <item><description>Bit 13-15 (3 bit): Numero di pin BNCI (0-7)</description></item>
         /// <item><description>Bit 16-20 (5 bit): Numero di pin GPIO (0-31)</description></item>
         /// <item><description>Bit 26-31 (6 bit): Dimensione memoria programmabile (0-63)</description></item>
         /// </list>
@@ -115,7 +115,7 @@ namespace Trgen
         public int SaNum { get; }
         
         /// <summary>
-        /// Numero di pin TMSO (TMS Output) disponibili sul dispositivo (0-7).
+        /// Numero di pin BNCO (TMS Output) disponibili sul dispositivo (0-7).
         /// </summary>
         /// <value>
         /// Intero rappresentante il numero di pin di output per stimolazione
@@ -124,7 +124,7 @@ namespace Trgen
         public int TmsoNum { get; }
         
         /// <summary>
-        /// Numero di pin TMSI (TMS Input) disponibili sul dispositivo (0-7).
+        /// Numero di pin BNCI (TMS Input) disponibili sul dispositivo (0-7).
         /// </summary>
         /// <value>
         /// Intero rappresentante il numero di pin di input per stimolazione

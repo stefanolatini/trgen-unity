@@ -3,7 +3,7 @@
 
 Features:
   
-  - TMSO Added to the args list of SendMarker
+  - BNCO Added to the args list of SendMarker
   - Added TriggerInputBhaviour into the TrgenExample.cs file
 
 Fixes:

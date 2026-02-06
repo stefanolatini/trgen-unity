@@ -259,7 +259,7 @@ namespace Trgen
             }
 
             // TMS Ports
-            config.TriggerPorts.Add("TMSO", new TriggerPortConfig(32)
+            config.TriggerPorts.Add("BNCO", new TriggerPortConfig(32)
             {
                 Id = 16,
                 Name = "TMS Output",
@@ -267,7 +267,7 @@ namespace Trgen
                 Enabled = true
             });
 
-            config.TriggerPorts.Add("TMSI", new TriggerPortConfig(32)
+            config.TriggerPorts.Add("BNCI", new TriggerPortConfig(32)
             {
                 Id = 17,
                 Name = "TMS Input",

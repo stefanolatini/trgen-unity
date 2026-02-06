@@ -14,7 +14,7 @@ namespace Trgen
 
         /// <summary>
         /// Tipologia di porta associata al trigger.
-        /// Es. NS, SA, TMSI, TMSO, GPIO.
+        /// Es. NS, SA, BNCI, BNCO, GPIO.
         /// </summary>
         public TriggerType Type { get; set; }
 
@@ -49,6 +49,6 @@ namespace Trgen
 
     public enum TriggerType
     {
-        NS, SA, TMSI, TMSO, GPIO
+        NS, SA, BNCI, BNCO, GPIO
     }
 }

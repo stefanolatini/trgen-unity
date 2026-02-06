@@ -313,7 +313,7 @@ Predefined pin identifiers for all ports:
    TrgenPin.SA0, TrgenPin.SA1, ..., TrgenPin.SA7
 
    // TMS pins
-   TrgenPin.TMSO, TrgenPin.TMSI
+   TrgenPin.BNCO, TrgenPin.BNCI
 
    // GPIO pins (GPIO0-GPIO7)
    TrgenPin.GPIO0, TrgenPin.GPIO1, ..., TrgenPin.GPIO7
@@ -499,7 +499,7 @@ Configuration Templates
      - 8-15
      - Synamps amplifier triggers
    * - **TMS**
-     - TMSO, TMSI
+     - BNCO, BNCI
      - 16-17
      - Transcranial magnetic stimulation
    * - **GPIO**

@@ -29,22 +29,22 @@ namespace Trgen
         private const int CMD_STOP_TRGEN = 0x09;
 
         /// <summary>
-        /// Sequenza di istruzioni predefinita per TMSO con trigger NE (Negative Edge) su TMSI
+        /// Sequenza di istruzioni predefinita per BNCO con trigger NE (Negative Edge) su BNCI
         /// </summary>
         public static uint[] TmsoWaitNeSequence => new uint[]
         {
-            InstructionEncoder.WaitNE(TrgenPin.TMSI),    // Attende fronte di discesa su TMSI
+            InstructionEncoder.WaitNE(TrgenPin.BNCI),    // Attende fronte di discesa su BNCI
             InstructionEncoder.ActiveForUs(20),          // 20µs attivo
             InstructionEncoder.UnactiveForUs(20),        // 20µs inattivo
             InstructionEncoder.End()                     // Fine sequenza
         };
 
         /// <summary>
-        /// Sequenza di istruzioni predefinita per TMSO con trigger PE (Positive Edge) su TMSI
+        /// Sequenza di istruzioni predefinita per BNCO con trigger PE (Positive Edge) su BNCI
         /// </summary>
         public static uint[] TmsoWaitPeSequence => new uint[]
         {
-            InstructionEncoder.WaitPE(TrgenPin.TMSI),    // Attende fronte di salita su TMSI
+            InstructionEncoder.WaitPE(TrgenPin.BNCI),    // Attende fronte di salita su BNCI
             InstructionEncoder.ActiveForUs(20),          // 20µs attivo
             InstructionEncoder.UnactiveForUs(20),        // 20µs inattivo
             InstructionEncoder.End()                     // Fine sequenza
@@ -176,8 +176,8 @@ namespace Trgen
             }
 
             // TMS Ports - Con memoria attuale
-            config.TriggerPorts["TMSO"] = CreatePortConfigWithMemory(16, "TMS Output", "TMS", "Transcranial Magnetic Stimulation Output");
-            config.TriggerPorts["TMSI"] = CreatePortConfigWithMemory(17, "TMS Input", "TMS", "Transcranial Magnetic Stimulation Input");
+            config.TriggerPorts["BNCO"] = CreatePortConfigWithMemory(16, "TMS Output", "TMS", "Transcranial Magnetic Stimulation Output");
+            config.TriggerPorts["BNCI"] = CreatePortConfigWithMemory(17, "TMS Input", "TMS", "Transcranial Magnetic Stimulation Input");
 
             // GPIO Ports (GPIO0-GPIO7) - Con memoria attuale
             for (int i = 0; i <= 7; i++)
@@ -221,99 +221,6 @@ namespace Trgen
             }
 
             return portConfig;
-        }
-
-
-        /// <summary>
-        /// Configura TMSO per rispondere ai segnali di input su TMSI
-        /// </summary>
-        /// <param name="ne">Se true, attende fronte negativo; se false, fronte positivo</param>
-        public void InputBNCOutput(bool ne = false)
-        {
-            var instructions = new uint[]
-            {
-                ne ? InstructionEncoder.WaitNE(TrgenPin.TMSI) : InstructionEncoder.WaitPE(TrgenPin.TMSI),
-                InstructionEncoder.ActiveForUs(20),
-                InstructionEncoder.UnactiveForUs(20),
-                InstructionEncoder.End()
-            };
-            ProgramPortWithInstructions(TrgenPin.TMSO, instructions);
-            Log(LogLevel.Info, "🔧 TMSO configurato per rispondere a TMSI");
-        }
-
-
-        /// <summary>
-        /// Configura TMSO per rispondere ai segnali di input su un pin GPIO specifico
-        /// </summary>
-        /// <param name="ne">Se true, attende fronte negativo; se false, fronte positivo</param>
-        /// <param name="gpioId">ID del pin GPIO da utilizzare come input</param>
-        public void InputGPIOTriggerTMSOBehaviour(bool ne = false, int gpioId = TrgenPin.GPIO0)
-        {
-            if (!TrgenPin.AllGpio.Contains(gpioId))
-            {
-                Log(LogLevel.Error, $"Pin GPIO non valido: {gpioId}. Utilizzare TrgenPin.GPIO0-GPIO7");
-                return;
-            }
-
-            var instructions = new uint[]
-            {
-                ne ? InstructionEncoder.WaitNE(gpioId) : InstructionEncoder.WaitPE(gpioId),
-                InstructionEncoder.ActiveForUs(20),
-                InstructionEncoder.UnactiveForUs(20),
-                InstructionEncoder.End()
-            };
-            ProgramPortWithInstructions(TrgenPin.TMSO, instructions);
-            Log(LogLevel.Info, $"🔧 TMSO configurato per rispondere a GPIO{gpioId - TrgenPin.GPIO0}");
-        }
-
-        /// <summary>
-        /// Configura un pin di output personalizzato per rispondere a un pin di input specifico
-        /// </summary>
-        /// <param name="inputPortId">ID del pin di input (TMSI o GPIO)</param>
-        /// <param name="outputPortId">ID del pin di output</param>
-        /// <param name="instructions">Istruzioni personalizzate (opzionale)</param>
-        /// <param name="ne">Se true, attende fronte negativo; se false, fronte positivo</param>
-        public void InputTriggerCustomPin(int inputPortId, int outputPortId, uint[] instructions = null, bool ne = false)
-        {
-            // Validazione pin di input
-            if (inputPortId != TrgenPin.TMSI && !TrgenPin.AllGpio.Contains(inputPortId))
-            {
-                Log(LogLevel.Error, $"Pin di input non valido: {inputPortId}. Solo TMSI e GPIO sono supportati");
-                return;
-            }
-
-            // Validazione pin di output
-            if (outputPortId == inputPortId)
-            {
-                Log(LogLevel.Error, "Il pin di output non può essere uguale al pin di input");
-                return;
-            }
-
-            if (outputPortId == TrgenPin.TMSI || TrgenPin.AllGpio.Contains(outputPortId))
-            {
-                Log(LogLevel.Error, $"Pin di output non valido: {outputPortId}. TMSI e GPIO non possono essere usati come output");
-                return;
-            }
-
-            // Usa istruzioni di default se non fornite
-            if (instructions == null || instructions.Length == 0)
-            {
-                instructions = new uint[]
-                {
-                    ne ? InstructionEncoder.WaitNE(inputPortId) : InstructionEncoder.WaitPE(inputPortId),
-                    InstructionEncoder.ActiveForUs(20),
-                    InstructionEncoder.UnactiveForUs(20),
-                    InstructionEncoder.End()
-                };
-            }
-            else
-            {
-                // Validazione istruzioni personalizzate
-                ValidateInstructions(instructions);
-            }
-
-            ProgramPortWithInstructions(outputPortId, instructions);
-            Log(LogLevel.Info, $"🔧 Pin {outputPortId} configurato per rispondere al pin {inputPortId}");
         }
 
         private void ValidateInstructions(uint[] instructions)
@@ -401,8 +308,8 @@ namespace Trgen
             }
 
             // TMS
-            snapshot["TMSO"] = GetPortMemory(16);
-            snapshot["TMSI"] = GetPortMemory(17);
+            snapshot["BNCO"] = GetPortMemory(16);
+            snapshot["BNCI"] = GetPortMemory(17);
 
             // GPIO
             for (int i = 0; i <= 7; i++)
@@ -675,18 +582,33 @@ namespace Trgen
         /// </summary>
         /// <param name="mask">Maschera di bit per impostare lo stato delle porte (1=attivo, 0=inattivo).</param>
         public void SetLevel(uint mask) => SendPacket(CMD_SET_LEVEL, new uint[] { mask });
-
-        public void SetGpio(uint mask) => SendPacket(CMD_SET_GPIO, new uint[] { mask });
+        /// <summary>
+        /// Imposta la direzione delle porte GPIO tramite maschera di bit.
+        /// </summary>
+        /// <param name="mask">Maschera di bit per impostare la direzione delle porte GPIO (1=output, 0=input).</param>
+        public void SetGPIODirection(uint mask) => SendPacket(CMD_SET_GPIO, new uint[] { mask });
 
         /// <summary>
         /// Richiede il livello attuale delle porte di output.
         /// </summary>
         /// <returns>Valore intero rappresentante lo stato corrente delle porte come maschera di bit.</returns>
         public int GetLevel() => ParseAckValue(SendPacket(CMD_REQ_LEVEL), CMD_REQ_LEVEL);
-
+        /// <summary>
+        /// Richiede lo stato attuale della porta selezionata.
+        /// </summary>
         public int GetStatus() => ParseAckValue(SendPacket(CMD_REQ_STATUS), CMD_REQ_STATUS);
-        public int GetGpio() => ParseAckValue(SendPacket(CMD_REQ_GPIO), CMD_REQ_GPIO);
+        
+        
+        /// <summary>
+        /// Richiede la direzione corrente delle porte GPIO.
+        /// </summary>
+        /// <returns>Valore intero rappresentante la direzione delle porte GPIO come maschera di bit (1=output, 0=input).</returns>
+        public int GetGPIODirection() => ParseAckValue(SendPacket(CMD_REQ_GPIO), CMD_REQ_GPIO);
 
+        /// <summary>
+        /// Invia la memoria programmata di un trigger al dispositivo TrGEN.
+        /// </summary>
+        /// <param name="t">Oggetto TrgenPort contenente la memoria da inviare.</param>
         public void SetTrgenMemory(TrgenPort t)
         {
             int id = t.Id;
@@ -694,12 +616,19 @@ namespace Trgen
             SendPacket(packetId, t.Memory);
         }
 
+        /// <summary>
+        /// Richiede l'implementazione corrente del dispositivo TrGEN.
+        /// </summary>
+        /// <returns>Valore intero rappresentante l'implementazione corrente.</returns>
         public int RequestImplementation()
         {
             var ack = SendPacket(CMD_REQ_IMPL);
             return ParseAckValue(ack, CMD_REQ_IMPL);
         }
-
+        /// <summary>
+        /// Resetta un trigger specifico impostandolo su uno stato inattivo.
+        /// </summary>
+        /// <param name="t">Oggetto TrgenPort da resettare.</param
         public void ResetTrigger(TrgenPort t)
         {
             t.SetInstruction(0, InstructionEncoder.End());
@@ -707,15 +636,18 @@ namespace Trgen
                 t.SetInstruction(i, InstructionEncoder.NotAdmissible());
             SetTrgenMemory(t);
         }
-
-        public void ResetAllTMS()
+    
+        /// <summary>
+        /// Resetta tutti i trigger BNC impostandoli su uno stato inattivo.
+        /// </summary>
+        public void ResetAllBNC()
         {
-            var tout = CreateTrgenPort(TrgenPin.TMSO);
+            var tout = CreateTrgenPort(TrgenPin.BNCO);
             tout.SetInstruction(0, InstructionEncoder.End());
             for (int i = 1; i < _memoryLength; i++)
                 tout.SetInstruction(i, InstructionEncoder.NotAdmissible());
             SetTrgenMemory(tout);
-            var tin = CreateTrgenPort(TrgenPin.TMSI);
+            var tin = CreateTrgenPort(TrgenPin.BNCI);
             tin.SetInstruction(0, InstructionEncoder.End());
             for (int i = 1; i < _memoryLength; i++)
                 tin.SetInstruction(i, InstructionEncoder.NotAdmissible());
@@ -867,7 +799,7 @@ namespace Trgen
             };
 
             var TMSOMap = new int[] {
-                TrgenPin.TMSO
+                TrgenPin.BNCO
             };
 
             var synampsMap = new int[] {
@@ -895,17 +827,17 @@ namespace Trgen
             ResetAllNS();
             ResetAllSA();
             ResetAllGPIO();
-            ResetAllTMS();
+            ResetAllBNC();
             
             if (markerTMSO != null)
             {   
                 if(markerNS < 0)
                     UnityEngine.Debug.LogWarning("[TRGEN] Il marker NS non può essere negativo. Valore fornito: " + markerNS.Value);
                 else{
-                    // Gestione speciale per TMSO (singolo pin)
-                    // NOTA: la mappatura TMSO utilizza un solo pin, quindi non è necessario fare il bitmasking.
+                    // Gestione speciale per BNCO (singolo pin)
+                    // NOTA: la mappatura BNCO utilizza un solo pin, quindi non è necessario fare il bitmasking.
                     if(markerTMSO.Value > 1)
-                        UnityEngine.Debug.LogWarning("[TRGEN] Il marker TMSO può essere solo 0 o 1. Valore fornito: " + markerTMSO.Value);  
+                        UnityEngine.Debug.LogWarning("[TRGEN] Il marker BNCO può essere solo 0 o 1. Valore fornito: " + markerTMSO.Value);  
                     var tmsx = CreateTrgenPort(TMSOMap[0]);
                     ProgramDefaultTrigger(tmsx);
                 }
@@ -1005,7 +937,7 @@ namespace Trgen
             ResetAllNS();
             ResetAllSA();
             ResetAllGPIO();
-            ResetAllTMS();
+            ResetAllBNC();
 
             // Programma NeuroScan triggers
             if (markerNS != null && markerNS.Value != 0)
@@ -1070,7 +1002,7 @@ namespace Trgen
         public void StopTrigger()
         {
             Stop();
-            ResetAllTMS();
+            ResetAllBNC();
             ResetAllSA();
             ResetAllGPIO();
             ResetAllNS();
