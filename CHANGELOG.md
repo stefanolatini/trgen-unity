@@ -1,4 +1,11 @@
 
+## 1.0.3
+
+Features:
+  
+  - Added callback features
+
+
 ## 1.0.2 
 
 Features:
