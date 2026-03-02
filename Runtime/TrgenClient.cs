@@ -2,7 +2,6 @@ using System;
 using System.Net.Sockets;
 using System.Text;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace Trgen
 {
@@ -1183,9 +1182,9 @@ namespace Trgen
         {
             // Configura istruzione di attesa
             if (ne)
-                port.SetInstruction(0, InstructionEncoder.WaitNE(inputPin));
+                port.SetInstruction(0, InstructionEncoder.WaitNE((uint)inputPin));
             else
-                port.SetInstruction(0, InstructionEncoder.WaitPE(inputPin));
+                port.SetInstruction(0, InstructionEncoder.WaitPE((uint)inputPin));
 
             if (customInstructions == null || customInstructions.Length == 0)
             {
@@ -1195,7 +1194,7 @@ namespace Trgen
                 port.SetInstruction(3, InstructionEncoder.End());
                 
                 // Riempi il resto con istruzioni non ammissibili
-                for (int i = 4; i < MEMORY_LENGTH; i++)
+                for (int i = 4; i < _memoryLength; i++)
                 {
                     port.SetInstruction(i, InstructionEncoder.NotAdmissible());
                 }
@@ -1203,13 +1202,13 @@ namespace Trgen
             else
             {
                 // Usa istruzioni personalizzate
-                for (int i = 0; i < customInstructions.Length && i + 1 < MEMORY_LENGTH; i++)
+                for (int i = 0; i < customInstructions.Length && i + 1 < _memoryLength; i++)
                 {
                     port.SetInstruction(i + 1, customInstructions[i]);
                 }
                 
                 // Riempi il resto se necessario
-                for (int i = customInstructions.Length + 1; i < MEMORY_LENGTH; i++)
+                for (int i = customInstructions.Length + 1; i < _memoryLength; i++)
                 {
                     port.SetInstruction(i, InstructionEncoder.NotAdmissible());
                 }
@@ -1244,9 +1243,9 @@ namespace Trgen
                     
                     // Configura istruzione di attesa
                     if (ne)
-                        port.SetInstruction(0, InstructionEncoder.WaitNE(inputPin));
+                        port.SetInstruction(0, InstructionEncoder.WaitNE((uint)inputPin));
                     else
-                        port.SetInstruction(0, InstructionEncoder.WaitPE(inputPin));
+                        port.SetInstruction(0, InstructionEncoder.WaitPE((uint)inputPin));
                     
                     // Istruzioni standard per marker
                     port.SetInstruction(1, InstructionEncoder.ActiveForUs(20));
@@ -1254,7 +1253,7 @@ namespace Trgen
                     port.SetInstruction(3, InstructionEncoder.End());
                     
                     // Riempi il resto con istruzioni non ammissibili
-                    for (int i = 4; i < MEMORY_LENGTH; i++)
+                    for (int i = 4; i < _memoryLength; i++)
                     {
                         port.SetInstruction(i, InstructionEncoder.NotAdmissible());
                     }

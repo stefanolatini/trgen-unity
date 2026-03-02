@@ -194,5 +194,26 @@ namespace Trgen
         /// </code>
         /// </example>
         public static uint NotAdmissible() => INST_NOT_ADMISSIBLE;
+
+        /// <summary>
+        /// Verifica se un valore è un'istruzione valida (diversa da Not Admissible).
+        /// </summary>
+        /// <param name="instruction">Istruzione da verificare.</param>
+        /// <returns>True se l'istruzione è valida, false altrimenti.</returns>
+        public static bool IsValidInstruction(uint instruction)
+        {
+            uint opcode = instruction & 0x7;
+            return opcode != INST_NOT_ADMISSIBLE;
+        }
+
+        /// <summary>
+        /// Verifica se un valore è un'istruzione di fine sequenza (End).
+        /// </summary>
+        /// <param name="instruction">Istruzione da verificare.</param>
+        /// <returns>True se l'istruzione è End, false altrimenti.</returns>
+        public static bool IsEndInstruction(uint instruction)
+        {
+            return (instruction & 0x7) == INST_END;
+        }
     }
 }
