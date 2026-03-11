@@ -49,6 +49,6 @@ namespace Trgen
 
     public enum TriggerType
     {
-        NS, SA, BNCI, BNCO, GPIO
+        NS, SA, BNCI, BNCO, GPIO, PD
     }
 }

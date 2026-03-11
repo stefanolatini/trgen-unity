@@ -103,6 +103,8 @@ namespace Trgen
         public const int GPIO6 = 24;
         /// <summary>Pin GPIO 7 (ID: 25)</summary>
         public const int GPIO7 = 25;
+        /// <summary>Pin Photodiode (ID: 26)</summary>
+        public const int PD = 26;
 
         /// <summary>
         /// Lista contenente tutti gli identificatori dei pin NeuroScan (NS0-NS7).

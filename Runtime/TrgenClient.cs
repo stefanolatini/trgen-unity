@@ -5,11 +5,28 @@ using System.Collections.Generic;
 
 namespace Trgen
 {
+    public class NewBaseType
+    {
+        public void StartTrigger(int triggerId)
+        {
+            ResetAll(TrgenPin.AllGpio);
+            ResetAll(TrgenPin.AllSa);
+            ResetAll(TrgenPin.AllNs);
+            ResetAll(TrgenPin.BNCI);
+            ResetAll(TrgenPin.BNCO);
+            ResetAll(TrgenPin.PD);
+
+            var tr = CreateTrgenPort(triggerId);
+            ProgramDefaultTrigger(tr);
+            Start();
+        }
+    }
+
     /// <summary>
     /// Gestisce la connessione, la comunicazione e il controllo dei trigger hardware tramite il protocollo TrGEN.
     /// Permette di programmare, resettare e inviare segnali di trigger su diversi tipi di porte (NeuroScan, Synamaps, GPIO).
     /// </summary>
-    public class TrgenClient
+    public class TrgenClient : NewBaseType
     {
         private readonly string ip;
         private readonly int port;
@@ -26,6 +43,9 @@ namespace Trgen
         private const int CMD_REQ_GPIO = 0x07;
         private const int CMD_REQ_LEVEL = 0x08;
         private const int CMD_STOP_TRGEN = 0x09;
+        private const int CMD_SET_THR_VALUE  = 0x0A;
+        private const int CMD_GET_THR_VALUE  = 0x0B;
+        private const int CMD_START_CALIBRATION = 0x0C;
 
         /// <summary>
         /// Sequenza di istruzioni predefinita per BNCO con trigger NE (Negative Edge) su BNCI
@@ -635,7 +655,19 @@ namespace Trgen
                 t.SetInstruction(i, InstructionEncoder.NotAdmissible());
             SetTrgenMemory(t);
         }
-    
+
+        /// <summary>
+        /// Resetta tutti i trigger BNC impostandoli su uno stato inattivo.
+        /// </summary>
+        public void ResetAllPD()
+        {
+            var tout = CreateTrgenPort(TrgenPin.PD);
+            tout.SetInstruction(0, InstructionEncoder.End());
+            for (int i = 1; i < _memoryLength; i++)
+                tout.SetInstruction(i, InstructionEncoder.NotAdmissible());
+            SetTrgenMemory(tout);
+        }
+
         /// <summary>
         /// Resetta tutti i trigger BNC impostandoli su uno stato inattivo.
         /// </summary>
@@ -747,15 +779,28 @@ namespace Trgen
             }
         }
 
-        public void StartTrigger(int triggerId)
-        {
-            ResetAll(TrgenPin.AllGpio);
-            ResetAll(TrgenPin.AllSa);
-            ResetAll(TrgenPin.AllNs);
+        public void SendTrigger(List<int>? triggerPinList,bool autoStart=true){
+            if(triggerPinList != null){
+                if(triggerPinList.Length == 0){
+                    throw new Exception($"TriggerPin Lis : {ackStr}");
+                }
 
-            var tr = CreateTrgenPort(triggerId);
-            ProgramDefaultTrigger(tr);
-            Start();
+                // Reset di tutti i port
+                ResetAllTrgenPorts();
+
+                foreach (var pinId in triggerPinList)
+                {
+                    var tr = CreateTrgenPort(pinId);
+                    ProgramDefaultTrigger(tr);
+                }
+
+            }else{
+                var tr = CreateTrgenPort(TrgenPin.BNCO);
+                ProgramDefaultTrigger(tr);
+            }
+
+            if(autoStart)
+                Start();
         }
 
         public void StartTriggerList(List<int> triggerIds)
@@ -779,7 +824,9 @@ namespace Trgen
         /// <param name="markerSA">Valore marker per Synamps.</param>
         /// <param name="markerGPIO">Valore marker per GPIO.</param>
         /// <param name="LSB">Se true, usa il bit meno significativo come primo pin.</param>
-        public void SendMarker(int? markerNS = null, int? markerSA = null, int? markerGPIO = null, int? markerTMSO = null, bool LSB = false)
+        /// <param name="stop">Se true, ferma automaticamente i trigger dopo l'invio.</param>
+        /// <param name="autoStart">Se true, avvia automaticamente i trigger dopo la programmazione.</param>
+        public void SendMarker(int? markerNS = null, int? markerSA = null, int? markerGPIO = null, int? markerTMSO = null, bool LSB = false, bool autoStart=true, bool stop = false)
         {
             // Se tutti i marker sono null, esci
             if (markerNS == null && markerSA == null && markerGPIO == null && markerTMSO == null)
@@ -827,6 +874,7 @@ namespace Trgen
             ResetAllSA();
             ResetAllGPIO();
             ResetAllBNC();
+            ResetAllPD();
             
             if (markerTMSO != null)
             {   
@@ -900,94 +948,9 @@ namespace Trgen
             }
 
             // Avvio sequenza
-            Start();
-        }
-
-        /// <summary>
-        /// Invia un marker (segnale di trigger) su una o più porte (NeuroScan, Synamps, GPIO) con opzione di stop automatico.
-        /// </summary>
-        /// <param name="markerNS">Valore marker per NeuroScan.</param>
-        /// <param name="markerSA">Valore marker per Synamps.</param>
-        /// <param name="markerGPIO">Valore marker per GPIO.</param>
-        /// <param name="LSB">Se true, usa il bit meno significativo come primo pin.</param>
-        /// <param name="stop">Se true, ferma automaticamente i trigger dopo l'invio.</param>
-        public void SendMarker(int? markerNS = null, int? markerSA = null, int? markerGPIO = null, int? markerTMSO = null, bool LSB = false, bool stop = false)
-        {
-            // Se tutti i marker sono null, esci
-            if (markerNS == null && markerSA == null && markerGPIO == null && markerTMSO == null)
-                return;
-
-            var neuroscanMap = new int[] {
-                TrgenPin.NS0, TrgenPin.NS1, TrgenPin.NS2, TrgenPin.NS3,
-                TrgenPin.NS4, TrgenPin.NS5, TrgenPin.NS6, TrgenPin.NS7
-            };
-
-            var synampsMap = new int[] {
-                TrgenPin.SA0, TrgenPin.SA1, TrgenPin.SA2, TrgenPin.SA3,
-                TrgenPin.SA4, TrgenPin.SA5, TrgenPin.SA6, TrgenPin.SA7
-            };
-
-            var gpioMap = new int[] {
-                TrgenPin.GPIO0, TrgenPin.GPIO1, TrgenPin.GPIO2, TrgenPin.GPIO3,
-                TrgenPin.GPIO4, TrgenPin.GPIO5, TrgenPin.GPIO6, TrgenPin.GPIO7
-            };
-
-            // Reset di tutti i trigger
-            ResetAllNS();
-            ResetAllSA();
-            ResetAllGPIO();
-            ResetAllBNC();
-
-            // Programma NeuroScan triggers
-            if (markerNS != null && markerNS.Value != 0)
-            {
-                var maskNS = Convert.ToString(markerNS.Value, 2).PadLeft(8, '0').ToCharArray();
-                if (!LSB) Array.Reverse(maskNS);
-                
-                for (int idx = 0; idx < maskNS.Length; idx++)
-                {
-                    if (maskNS[idx] == '1')
-                    {
-                        var nsx = CreateTrgenPort(neuroscanMap[idx]);
-                        ProgramDefaultTrigger(nsx);
-                    }
-                }
+            if(autoStart){
+                Start();
             }
-
-            // Programma Synamps triggers
-            if (markerSA != null && markerSA.Value != 0)
-            {
-                var maskSA = Convert.ToString(markerSA.Value, 2).PadLeft(8, '0').ToCharArray();
-                if (!LSB) Array.Reverse(maskSA);
-                
-                for (int idx = 0; idx < maskSA.Length; idx++)
-                {
-                    if (maskSA[idx] == '1')
-                    {
-                        var sax = CreateTrgenPort(synampsMap[idx]);
-                        ProgramDefaultTrigger(sax);
-                    }
-                }
-            }
-
-            // Programma GPIO triggers
-            if (markerGPIO != null && markerGPIO.Value != 0)
-            {
-                var maskGPIO = Convert.ToString(markerGPIO.Value, 2).PadLeft(8, '0').ToCharArray();
-                if (!LSB) Array.Reverse(maskGPIO);
-                
-                for (int idx = 0; idx < maskGPIO.Length; idx++)
-                {
-                    if (maskGPIO[idx] == '1')
-                    {
-                        var gpx = CreateTrgenPort(gpioMap[idx]);
-                        ProgramDefaultTrigger(gpx);
-                    }
-                }
-            }
-
-            // Avvio sequenza
-            Start();
 
             // Stop automatico se richiesto
             if (stop)
@@ -995,6 +958,8 @@ namespace Trgen
                 Stop();
             }
         }
+
+        
         /// <summary>
         /// Ferma tutti i trigger attivi e resetta lo stato dei pin.
         /// </summary>
@@ -1005,6 +970,7 @@ namespace Trgen
             ResetAllSA();
             ResetAllGPIO();
             ResetAllNS();
+            ResetAllPD();
         }
 
         /// <summary>
@@ -1035,10 +1001,10 @@ namespace Trgen
                 }
 
                 // Verifica che BNCI non sia nella lista (è solo input)
-                if (trgenPinList.Contains(TrgenPin.BNCI))
+                if (trgenPinList.Contains(TrgenPin.BNCI) || trgenPinList.Contains(TrgenPin.PD))
                 {
                     if (Verbosity >= LogLevel.Error)
-                        Debug.LogError("❌ BNCI è solo input e non può essere usato nella lista trigger");
+                        Debug.LogError("❌ BNCI e PD sono solo input e non possono essere usati nella lista trigger");
                     return;
                 }
 
@@ -1046,6 +1012,10 @@ namespace Trgen
                 var validGpio = new HashSet<int> { 
                     TrgenPin.GPIO0, TrgenPin.GPIO1, TrgenPin.GPIO2, TrgenPin.GPIO3,
                     TrgenPin.GPIO4, TrgenPin.GPIO5, TrgenPin.GPIO6, TrgenPin.GPIO7
+                };
+
+                var validPD = new HashSet<int> {
+                    TrgenPin.PD
                 };
 
                 if (validGpio.Contains(inputPin.Value) && trgenPinList.Contains(inputPin.Value))
@@ -1118,10 +1088,10 @@ namespace Trgen
             }
 
             // Validazione pin di input supportati
-            if (inputPin.Value != TrgenPin.BNCI && !validGpio.Contains(inputPin.Value))
+            if (inputPin.Value != TrgenPin.BNCI && !validGpio.Contains(inputPin.Value) && inputPin.Value != TrgenPin.PD)
             {
                 if (Verbosity >= LogLevel.Error)
-                    Debug.LogError($"❌ Pin di input non valido: {inputPin}. Solo BNCI e GPIO sono supportati");
+                    Debug.LogError($"❌ Pin di input non valido: {inputPin}. Solo BNCI, PD e GPIO sono supportati");
                 return;
             }
 
@@ -1180,6 +1150,9 @@ namespace Trgen
 
         private void ConfigureTriggerPort(TrgenPort port, int inputPin, bool ne, uint[] customInstructions)
         {
+            if (inputPin == TrgenPin.PD){
+                ne = !ne;
+            }
             // Configura istruzione di attesa
             if (ne)
                 port.SetInstruction(0, InstructionEncoder.WaitNE((uint)inputPin));
@@ -1241,6 +1214,9 @@ namespace Trgen
                 {
                     var port = CreateTrgenPort(portMap[idx]);
                     
+                    if (inputPin == TrgenPin.PD){
+                        ne = !ne;
+                    }
                     // Configura istruzione di attesa
                     if (ne)
                         port.SetInstruction(0, InstructionEncoder.WaitNE((uint)inputPin));
@@ -1295,6 +1271,108 @@ namespace Trgen
             SetTrgenMemory(port);
             if (Verbosity >= LogLevel.Debug)
                 Debug.Log($"💾 Memoria TrgenPort ID {port.Id} scritta");
+        }
+
+        /// <summary>
+        /// Ottiene il valore di soglia per un fotodiodo specifico.
+        /// Il dispositivo risponde con un uint32 in cui i bit 0-15 contengono il valore di soglia
+        /// e il bit 16 il flag di trigger.
+        /// </summary>
+        /// <param name="photodiodeNum">Indice del fotodiodo (0-based).</param>
+        /// <returns>Valore di soglia (bit 0-15 della risposta).</returns>
+        public int GetThresholdValue(int photodiodeNum)
+        {
+            byte[] payload = BuildThrPayload(photodiodeNum, 0);
+            var ack = SendPacketBytes(CMD_GET_THR_VALUE, payload);
+            int value = ParseAckValue(ack, CMD_GET_THR_VALUE);
+            return value & 0xFFFF;
+        }
+
+        /// <summary>
+        /// Imposta il valore di soglia per un fotodiodo specifico.
+        /// Il valore viene trasmesso in network byte order (big-endian), come da protocollo C htons().
+        /// </summary>
+        /// <param name="photodiodeNum">Indice del fotodiodo (0-based).</param>
+        /// <param name="threshold">Valore di soglia da impostare (0-65535).</param>
+        public void SetThresholdValue(int photodiodeNum, int threshold)
+        {
+            byte[] payload = BuildThrPayload(photodiodeNum, threshold);
+            SendPacketBytes(CMD_SET_THR_VALUE, payload);
+        }
+
+        /// <summary>
+        /// Avvia la calibrazione hardware e legge i valori di soglia calibrati per ogni fotodiodo.
+        /// Attende 100 ms dopo l'invio del comando per dare tempo al dispositivo di completare la calibrazione.
+        /// </summary>
+        /// <param name="count">Numero di fotodiodi da leggere dopo la calibrazione. Default: 1.</param>
+        /// <returns>Array dei valori di soglia calibrati, uno per fotodiodo.</returns>
+        public int[] StartCalibration(int count = 1)
+        {
+            SendPacketBytes(CMD_START_CALIBRATION);
+            System.Threading.Thread.Sleep(100);
+            var results = new int[count];
+            for (int i = 0; i < count; i++)
+                results[i] = GetThresholdValue(i);
+            return results;
+        }
+
+        /// <summary>
+        /// Costruisce il payload per i comandi threshold nel formato del protocollo:
+        /// 1 byte (photodiodeNum) + 2 byte big-endian (threshold) + 1 byte padding.
+        /// Equivale a struct.pack('!BHB', photod_num, threshold, 0) in Python.
+        /// </summary>
+        private byte[] BuildThrPayload(int photodiodeNum, int threshold)
+        {
+            return new byte[]
+            {
+                (byte)photodiodeNum,
+                (byte)((threshold >> 8) & 0xFF),
+                (byte)(threshold & 0xFF),
+                0
+            };
+        }
+
+        /// <summary>
+        /// Invia un pacchetto con payload in formato byte grezzo (senza conversione uint little-endian).
+        /// Usato per comandi che richiedono un formato struct specifico nel payload.
+        /// </summary>
+        private string SendPacketBytes(int packetId, byte[] rawPayload = null)
+        {
+            byte[] header = ToLittleEndian((uint)packetId);
+            byte[] payloadBytes = rawPayload ?? Array.Empty<byte>();
+
+            byte[] raw = new byte[header.Length + payloadBytes.Length];
+            Buffer.BlockCopy(header, 0, raw, 0, header.Length);
+            if (payloadBytes.Length > 0)
+                Buffer.BlockCopy(payloadBytes, 0, raw, header.Length, payloadBytes.Length);
+
+            uint crc = Crc32.Compute(raw);
+            byte[] crcBytes = ToLittleEndian(crc);
+
+            byte[] packet = new byte[raw.Length + crcBytes.Length];
+            Buffer.BlockCopy(raw, 0, packet, 0, raw.Length);
+            Buffer.BlockCopy(crcBytes, 0, packet, raw.Length, 4);
+            DebugPacket(packet, $"Sending packet 0x{packetId:X8}");
+            using (var client = new TcpClient())
+            {
+                try
+                {
+                    client.Connect(ip, port);
+                    connected = true;
+
+                    using var stream = client.GetStream();
+                    stream.Write(packet, 0, packet.Length);
+
+                    byte[] buffer = new byte[64];
+                    int read = stream.Read(buffer, 0, buffer.Length);
+                    return Encoding.ASCII.GetString(buffer, 0, read);
+                }
+                catch
+                {
+                    connected = false;
+                    throw;
+                }
+            }
         }
 
 

@@ -83,6 +83,8 @@ namespace Trgen
         /// Console.WriteLine($"  Pin NeuroScan: {config.NsNum}");
         /// Console.WriteLine($"  Pin Synamps: {config.SaNum}");
         /// Console.WriteLine($"  Pin GPIO: {config.GpioNum}");
+        /// Console.WriteLine($"  Pin Photodiode: {config.PhotodNum}");
+        /// Console.WriteLine($"  SPI Interface: {config.Spiif}");
         /// Console.WriteLine($"  Memoria trigger: {config.MemoryLength} istruzioni");
         /// </code>
         /// </example>
@@ -93,6 +95,8 @@ namespace Trgen
             TmsoNum      = (packed >> 10) & 0x07;
             TmsiNum      = (packed >> 13) & 0x07;
             GpioNum      = (packed >> 16) & 0x1F;
+            PhotodNum    = (packed >> 21) & 0x0F;
+            Spiif        = (packed >> 25) & 0x01;
             MemoryLength = (packed >> 26) & 0x3F;
         }
 
@@ -140,7 +144,21 @@ namespace Trgen
         /// presenti sul dispositivo. Tipicamente da 0 a 8 nei dispositivi standard.
         /// </value>
         public int GpioNum { get; }
-        
+
+        /// <summary>
+        /// Numero di fotodiodi disponibili sul dispositivo (0-15).
+        /// </summary>
+        /// <value>
+        /// Intero rappresentante il numero di canali fotodiodo presenti sul dispositivo.
+        /// Utilizzato per determinare quanti valori di soglia possono essere letti/impostati.
+        /// </value>
+        public int PhotodNum { get; }
+
+        /// <summary>
+        /// Presenza dell'interfaccia SPI sul dispositivo (0 = assente, 1 = presente).
+        /// </summary>
+        public int Spiif { get; }
+
         /// <summary>
         /// Dimensione della memoria programmabile per ciascun trigger in numero di istruzioni.
         /// </summary>
