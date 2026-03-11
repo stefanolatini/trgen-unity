@@ -2,31 +2,15 @@ using System;
 using System.Net.Sockets;
 using System.Text;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace Trgen
 {
-    public class NewBaseType
-    {
-        public void StartTrigger(int triggerId)
-        {
-            ResetAll(TrgenPin.AllGpio);
-            ResetAll(TrgenPin.AllSa);
-            ResetAll(TrgenPin.AllNs);
-            ResetAll(TrgenPin.BNCI);
-            ResetAll(TrgenPin.BNCO);
-            ResetAll(TrgenPin.PD);
-
-            var tr = CreateTrgenPort(triggerId);
-            ProgramDefaultTrigger(tr);
-            Start();
-        }
-    }
-
     /// <summary>
     /// Gestisce la connessione, la comunicazione e il controllo dei trigger hardware tramite il protocollo TrGEN.
     /// Permette di programmare, resettare e inviare segnali di trigger su diversi tipi di porte (NeuroScan, Synamaps, GPIO).
     /// </summary>
-    public class TrgenClient : NewBaseType
+    public class TrgenClient
     {
         private readonly string ip;
         private readonly int port;
@@ -781,8 +765,8 @@ namespace Trgen
 
         public void SendTrigger(List<int>? triggerPinList,bool autoStart=true){
             if(triggerPinList != null){
-                if(triggerPinList.Length == 0){
-                    throw new Exception($"TriggerPin Lis : {ackStr}");
+                if(triggerPinList.Count == 0){
+                    throw new Exception($"TriggerPin list is empty. Please provide at least one pin ID or set triggerPinList to null to use default BNCO.");
                 }
 
                 // Reset di tutti i port
